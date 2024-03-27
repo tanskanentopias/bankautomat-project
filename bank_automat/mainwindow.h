@@ -17,5 +17,23 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QString password;
+    QString cardNumber;
+    QString currentNumPadKey;
+    QString currentSideButton;
+    QString correctPassword = "1234";
+    QString correctCardNumber = "4321";
+    short pinAttemptsLeft;
+    short state;
+
+    void cardNumberAndPin();
+    void fillLineEdit();
+    void reset();
+
+private slots:
+    void numPadClickHandler();
+    void sideButtonClickHandler();
+
 };
 #endif // MAINWINDOW_H
+
