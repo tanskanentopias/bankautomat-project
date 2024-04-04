@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,10 +24,11 @@ private:
     QString currentSideButton;
     QString correctPassword = "1234";
     QString correctCardNumber = "4321";
+    QString withdrawAmount;
     short pinAttemptsLeft;
     short state;
-    short window;
-    double withdrawAmount;
+    int window;
+    bool wasOtherChosen;
 
     void cardNumberAndPin();
     void showMenu();
@@ -35,6 +37,8 @@ private:
     void reset();
     void hideElements();
     void clearLabels();
+    void checkCardNumber();
+    void checkPassword();
 
 private slots:
     void numPadClickHandler();

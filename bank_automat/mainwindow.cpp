@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent)
     , pinAttemptsLeft(3)
     , state(0)
     , window(0)
-    , withdrawAmount(0)
 {
     ui->setupUi(this);
 
@@ -25,8 +24,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->numPadEnter, &QPushButton::clicked, this, &MainWindow::numPadClickHandler);
 
     connect(ui->rightButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
+    connect(ui->rightButton5, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton2, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
+    connect(ui->leftButton3, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
+    connect(ui->leftButton4, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
+    connect(ui->leftButton5, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
 
     //ui->pinLineEdit->setEchoMode(QLineEdit::Password);
     hideElements();
@@ -39,32 +42,35 @@ MainWindow::~MainWindow()
 
 void MainWindow::cardNumberAndPin()
 {
-    window = 1;
     state = 1;
     ui->titleLabel->setText("Insert card");
+    ui->rightLabel1->setText("RESET");
     ui->cardNumLineEdit->show();
     ui->pinLineEdit->show();
     ui->cardNumberLabel->show();
     ui->pinLabel->show();
+    window = 1;
 }
 
 void MainWindow::showMenu()
 {
-    window = 2;
     hideElements();
     clearLabels();
     ui->titleLabel->setText("Welcome User");
     ui->leftLabel2->setText("WITHDRAW");
     ui->leftLabel1->setText("SHOW EVENTS");
     ui->rightLabel1->setText("LOG OUT");
+    window = 2;
 }
 
 void MainWindow::showWithdrawMenu()
 {
-    window = 3;
     hideElements();
     clearLabels();
     ui->titleLabel->setText("Select amount to withdraw");
+    QTimer::singleShot(0, this, [this]() {
+        ui->withdrawLineEdit->clear();
+    });
     ui->leftLabel5->setText("20 €");
     ui->leftLabel4->setText("40 €");
     ui->leftLabel3->setText("50 €");
@@ -73,6 +79,7 @@ void MainWindow::showWithdrawMenu()
     ui->rightLabel1->setText("BACK");
     ui->withdrawLabel->show();
     ui->withdrawLineEdit->show();
+    window = 3;
 }
 
 void MainWindow::numPadClickHandler()
@@ -87,76 +94,104 @@ void MainWindow::sideButtonClickHandler()
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     currentSideButton = button->objectName();
 
-    if (currentSideButton == "leftButton1" && ui->leftLabel1->text() == "INSERT CARD") {
+    if (currentSideButton == "leftButton1" && window == 0) {
         cardNumberAndPin();
         ui->leftLabel1->setText("");
     }
-    if (currentSideButton == "rightButton1" && ui->rightLabel1->text() == "RESET") {
+    if (currentSideButton == "rightButton1" && window == 1) {
         reset();
     }
-    if (currentSideButton == "rightButton1" && ui->rightLabel1->text() == "LOG OUT") {
+    if (currentSideButton == "rightButton1" && window == 2) {
         reset();
         //jotain token-reset juttua tähän jos tarvii
     }
-    if (currentSideButton == "leftButton2" && ui->leftLabel2->text() == "WITHDRAW") {
+    if (currentSideButton == "leftButton2" && window == 2) {
         clearLabels();
         showWithdrawMenu();
     }
-    if (currentSideButton == "rightButton1" && ui->rightLabel1->text() == "BACK" && window == 3) {
+    if (currentSideButton == "rightButton1" && window == 3) {
         clearLabels();
         showMenu();
+    }
+    if (currentSideButton == "leftButton5" && window == 3) {
+        ui->withdrawLineEdit->setText("20");
+        wasOtherChosen = false;
+    }
+    if (currentSideButton == "leftButton4" && window == 3) {
+        ui->withdrawLineEdit->setText("40");
+        wasOtherChosen = false;
+    }
+    if (currentSideButton == "leftButton3" && window == 3) {
+        ui->withdrawLineEdit->setText("50");
+        wasOtherChosen = false;
+    }
+    if (currentSideButton == "leftButton2" && window == 3) {
+        ui->withdrawLineEdit->setText("100");
+        wasOtherChosen = false;
+    }
+    if (currentSideButton == "leftButton1" && window == 3) {
+        wasOtherChosen = true;
+        ui->withdrawLineEdit->clear();
+        withdrawAmount.clear();
+    }
+    if (currentSideButton == "rightButton5") {
+        qDebug() << window << ui->withdrawLineEdit->text() << withdrawAmount;
     }
 }
 
 void MainWindow::fillLineEdit()
 {
-    switch (state) {
-        case 1:
-            if (currentNumPadKey == "CLR") {                //Kortin numero tulee lukijalta
-                ui->cardNumLineEdit->clear();
-                cardNumber.clear();
-            } else if (currentNumPadKey == "OK" && cardNumber == correctCardNumber) {
-                state = 2;
-            } else if (currentNumPadKey != "OK") {
-                cardNumber = cardNumber + currentNumPadKey;
-                ui->cardNumLineEdit->setText(cardNumber);
-            }
-            break;
-        case 2:
-            if (currentNumPadKey == "CLR") {
-                ui->pinLineEdit->clear();
-                password.clear();
-            } else if (currentNumPadKey != "OK"){
-                password = password + currentNumPadKey;
-                ui->pinLineEdit->setText(password);
-            }
-            if (currentNumPadKey == "OK" && password != correctPassword) {
-                pinAttemptsLeft --;
-                ui->pinLineEdit->clear();
-                password.clear();
-                qDebug() << pinAttemptsLeft;
-                if (pinAttemptsLeft == 0) {
-                    //Tähän joku ikkuna, jossa kerrotaan että tuuhioit salasanan ja lockout
+    if (window == 1) {
+        switch (state) {
+            case 1:
+                if (currentNumPadKey == "CLR") {                //Kortin numero tulee lukijalta, pitää muuttaa
+                    ui->cardNumLineEdit->clear();
+                    cardNumber.clear();
+                } else if (currentNumPadKey == "OK") {
+                    checkCardNumber();
+                } else {
+                    cardNumber = cardNumber + currentNumPadKey;
+                    ui->cardNumLineEdit->setText(cardNumber);
                 }
-            } else if (currentNumPadKey == "OK" && password == correctPassword) {
-                state = 0;
-                hideElements();
-                showMenu();
+                break;
+            case 2:
+                if (currentNumPadKey == "CLR") {
+                    ui->pinLineEdit->clear();
+                    password.clear();
+                } else if (currentNumPadKey == "OK") {
+                    checkPassword();
+                } else {
+                    password = password + currentNumPadKey;
+                    ui->pinLineEdit->setText(password);
+                }
+
+                break;
             }
-            break;
+    }
+    if (window == 3 && wasOtherChosen == true) {
+        if (currentNumPadKey == "CLR") {
+            ui->withdrawLineEdit->clear();
+            withdrawAmount.clear();
+        } else if (currentNumPadKey == "OK") {
+            //uus ikkuna, jossa esim "Nostit 20 e" jne
+        } else {
+            withdrawAmount = withdrawAmount + currentNumPadKey;
+            ui->withdrawLineEdit->setText(withdrawAmount);
+            qDebug() << withdrawAmount;
         }
+    }
 }
 
 void MainWindow::reset()
 {
     hideElements();
     state = 0;
+    window = 0;
     pinAttemptsLeft = 3;
     currentNumPadKey.clear();
     currentSideButton.clear();
     clearLabels();
     ui->leftLabel1->setText("INSERT CARD");
-    ui->rightLabel1->setText("RESET");
     ui->titleLabel->setText("Pankkiautomaatti");
 }
 
@@ -173,6 +208,7 @@ void MainWindow::hideElements()
     ui->withdrawLineEdit->hide();
     ui->withdrawLineEdit->clear();
     ui->withdrawLabel->hide();
+    withdrawAmount.clear();
 }
 
 void MainWindow::clearLabels()
@@ -188,4 +224,35 @@ void MainWindow::clearLabels()
     ui->rightLabel4->clear();
     ui->rightLabel5->clear();
     ui->titleLabel->clear();
+}
+
+void MainWindow::checkCardNumber()
+{
+    if (cardNumber == correctCardNumber) {
+        state = 2;
+        qDebug() << "Card OK";
+        ui->titleLabel->setText("Insert PIN");
+    } else {
+        ui->cardNumLineEdit->clear();
+        cardNumber.clear();
+        qDebug() << "Incorrect card number";
+    }
+}
+
+void MainWindow::checkPassword()
+{
+    if (password == correctPassword) {
+        state = 0;
+        hideElements();
+        showMenu();
+    } else {
+        ui->pinLineEdit->clear();
+        password.clear();
+        pinAttemptsLeft--;
+        if (pinAttemptsLeft == 0) {
+            MainWindow::close();    //Temporary
+        }
+        qDebug() << "Wrong PIN";
+        qDebug() << "Attempts left:" << pinAttemptsLeft;
+    }
 }
