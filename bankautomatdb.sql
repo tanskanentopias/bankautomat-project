@@ -181,3 +181,25 @@ DELIMITER ;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2024-03-27 13:39:34
+
+select * from card;
+select * from account;
+select * from user;
+select * from event;
+
+call withdraw(100, 2);
+
+UPDATE account SET credit_limit=-5000 WHERE id_account IN(1,2,3,4);
+
+DELIMITER //
+CREATE PROCEDURE showEvents(IN accountId INT)
+BEGIN
+SELECT * from event WHERE id_account=accountId
+ORDER BY id_account DESC
+LIMIT 5;
+END //
+DELIMITER ;
+
+call showEvents(2);
+
+
