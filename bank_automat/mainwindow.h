@@ -25,10 +25,16 @@ private:
     QString correctCardNumber = "4321";
     short pinAttemptsLeft;
     short state;
+    short window;
+    double withdrawAmount;
 
     void cardNumberAndPin();
+    void showMenu();
+    void showWithdrawMenu();
     void fillLineEdit();
     void reset();
+    void hideElements();
+    void clearLabels();
 
 private slots:
     void numPadClickHandler();
