@@ -39,7 +39,7 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,5100.00,10000.00,101),(2,2200.00,10000.00,101),(3,5000.00,10000.00,102),(4,5000.00,10000.00,102);
+INSERT INTO `account` VALUES (1,5100.00,-5000.00,101),(2,2100.00,-5000.00,101),(3,5000.00,-5000.00,102),(4,5000.00,-5000.00,102);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -87,7 +87,7 @@ CREATE TABLE `event` (
   PRIMARY KEY (`id_event`),
   KEY `fk_event_account1_idx` (`id_account`),
   CONSTRAINT `event_account` FOREIGN KEY (`id_account`) REFERENCES `account` (`id_account`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,7 +96,7 @@ CREATE TABLE `event` (
 
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
-INSERT INTO `event` VALUES (10,'debit','2024-03-27 13:31:39',-100.00,1),(11,'withdraw','2024-03-27 13:35:43',-100.00,1),(12,'withdraw','2024-03-27 13:35:56',-100.00,1);
+INSERT INTO `event` VALUES (10,'debit','2024-03-27 13:31:39',-100.00,1),(11,'withdraw','2024-03-27 13:35:43',-100.00,1),(12,'withdraw','2024-03-27 13:35:56',-100.00,1),(13,'withdraw','2024-04-04 16:36:10',-100.00,2);
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -149,6 +149,27 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `showEvents` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `showEvents`(IN accountId INT)
+BEGIN
+SELECT * from event WHERE id_account=accountId
+ORDER BY id_account DESC
+LIMIT 5;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `withdraw` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -180,26 +201,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-03-27 13:39:34
-
-select * from card;
-select * from account;
-select * from user;
-select * from event;
-
-call withdraw(100, 2);
-
-UPDATE account SET credit_limit=-5000 WHERE id_account IN(1,2,3,4);
-
-DELIMITER //
-CREATE PROCEDURE showEvents(IN accountId INT)
-BEGIN
-SELECT * from event WHERE id_account=accountId
-ORDER BY id_account DESC
-LIMIT 5;
-END //
-DELIMITER ;
-
-call showEvents(2);
-
-
+-- Dump completed on 2024-04-04 17:13:04
