@@ -10,10 +10,49 @@
     <height>960</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1280</width>
+    <height>960</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1280</width>
+    <height>960</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="animated">
+   <bool>true</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>1280</width>
+     <height>960</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>1280</width>
+     <height>960</height>
+    </size>
+   </property>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
@@ -263,6 +302,12 @@
       <height>561</height>
      </rect>
     </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
     <property name="frameShape">
      <enum>QFrame::Box</enum>
     </property>
@@ -275,7 +320,7 @@
     <property name="midLineWidth">
      <number>0</number>
     </property>
-    <widget class="QLabel" name="cardNumberLabel">
+    <widget class="QLabel" name="centerLabel2">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -296,7 +341,7 @@
       <string>Card Number</string>
      </property>
     </widget>
-    <widget class="QLabel" name="pinLabel">
+    <widget class="QLabel" name="centerLabel3">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -317,7 +362,7 @@
       <string>PIN</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="cardNumLineEdit">
+    <widget class="QLineEdit" name="lineEdit2">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -334,8 +379,11 @@
        <pointsize>12</pointsize>
       </font>
      </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
-    <widget class="QLineEdit" name="pinLineEdit">
+    <widget class="QLineEdit" name="lineEdit3">
      <property name="geometry">
       <rect>
        <x>430</x>
@@ -348,6 +396,9 @@
       <font>
        <pointsize>12</pointsize>
       </font>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QLabel" name="titleLabel">
@@ -381,9 +432,9 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>750</x>
+       <x>710</x>
        <y>10</y>
-       <width>121</width>
+       <width>161</width>
        <height>531</height>
       </rect>
      </property>
@@ -490,7 +541,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>121</width>
+       <width>161</width>
        <height>531</height>
       </rect>
      </property>
@@ -562,7 +613,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QLabel" name="withdrawLabel">
+    <widget class="QLabel" name="centerLabel1">
      <property name="geometry">
       <rect>
        <x>311</x>
@@ -583,7 +634,7 @@
       <string>Amount</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="withdrawLineEdit">
+    <widget class="QLineEdit" name="lineEdit1">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -599,6 +650,19 @@
       <font>
        <pointsize>12</pointsize>
       </font>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QTableView" name="tableView">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>240</y>
+       <width>400</width>
+       <height>250</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -811,17 +875,6 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1280</width>
-     <height>21</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

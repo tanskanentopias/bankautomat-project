@@ -30,9 +30,11 @@ private:
     int window;
     bool wasOtherChosen;
 
-    void cardNumberAndPin();
+    void showLoginMenu();
     void showMenu();
     void showWithdrawMenu();
+    void showBalanceMenu();
+    void showEventMenu();
     void fillLineEdit();
     void reset();
     void hideElements();
