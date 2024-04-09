@@ -202,3 +202,24 @@ DELIMITER ;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2024-04-04 17:13:04
+
+call showEvents(2);
+select * from account;
+select * from user;
+select * from event;
+select * from card;
+
+call deposit(2900, 2);
+
+DELIMITER //
+CREATE PROCEDURE creditWithdraw(IN eventAmount DECIMAL(10,2), accountId INT)
+BEGIN
+IF(balance-eventamount>0) THEN
+COMMIT;
+UPDATE account SET balance=balance-eventAmount WHERE id_account=accountId;
+INSERT INTO event (id_event, transaction_type, transaction_date, amount, id_account)
+VALUES (+id_event, 'withdraw', current_timestamp(), -eventAmount, accountId);
+ELSE 
+ROLLBACK;
+END //
+DELIMITER ;
