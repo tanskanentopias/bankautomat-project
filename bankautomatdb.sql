@@ -1,13 +1,15 @@
--- MySQL dump 10.13  Distrib 8.2.0, for Win64 (x86_64)
+CREATE DATABASE  IF NOT EXISTS `bankautomatdb` /*!40100 DEFAULT CHARACTER SET utf8mb3 */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `bankautomatdb`;
+-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
--- Host: localhost    Database: bankautomatdb
+-- Host: 127.0.0.1    Database: bankautomatdb
 -- ------------------------------------------------------
 -- Server version	8.2.0
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
+/*!50503 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -39,7 +41,7 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,5100.00,-5000.00,101),(2,2100.00,-5000.00,101),(3,5000.00,-5000.00,102),(4,5000.00,-5000.00,102);
+INSERT INTO `account` VALUES (1,5000.00,-5000.00,101),(2,5000.00,-5000.00,101),(3,5000.00,-5000.00,102),(4,5000.00,-5000.00,102);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -67,7 +69,7 @@ CREATE TABLE `card` (
 
 LOCK TABLES `card` WRITE;
 /*!40000 ALTER TABLE `card` DISABLE KEYS */;
-INSERT INTO `card` VALUES ('060006420E','debit',NULL,1),('06000649CD','debit/credit',NULL,2),('060006DAEB','credit',NULL,1);
+INSERT INTO `card` VALUES ('060006420E','debit','$2a$10$sjyPYzeiNWLEC.xOCPEnAO4kYFl.mitNWg1IpbFQGjy1wbtTPgnwW',1),('060006DAEB','credit','$2a$10$HWzQdPyFPMHwltsn/zUGZe3LC/zu.14ZwJouXlffTDq/RK.m0qIzm',2);
 /*!40000 ALTER TABLE `card` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -87,7 +89,7 @@ CREATE TABLE `event` (
   PRIMARY KEY (`id_event`),
   KEY `fk_event_account1_idx` (`id_account`),
   CONSTRAINT `event_account` FOREIGN KEY (`id_account`) REFERENCES `account` (`id_account`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,7 +98,7 @@ CREATE TABLE `event` (
 
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
-INSERT INTO `event` VALUES (10,'debit','2024-03-27 13:31:39',-100.00,1),(11,'withdraw','2024-03-27 13:35:43',-100.00,1),(12,'withdraw','2024-03-27 13:35:56',-100.00,1),(13,'withdraw','2024-04-04 16:36:10',-100.00,2);
+INSERT INTO `event` VALUES (10,'debit','2024-03-27 13:31:39',-100.00,1),(11,'withdraw','2024-03-27 13:35:43',-100.00,1),(12,'withdraw','2024-03-27 13:35:56',-100.00,1),(13,'withdraw','2024-04-04 16:36:10',-100.00,2),(14,'deposit','2024-04-08 13:14:06',2900.00,2),(15,'withdraw','2024-04-10 11:55:25',-100.00,1);
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -201,25 +203,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-04-04 17:13:04
-
-call showEvents(2);
-select * from account;
-select * from user;
-select * from event;
-select * from card;
-
-call deposit(2900, 2);
-
-DELIMITER //
-CREATE PROCEDURE creditWithdraw(IN eventAmount DECIMAL(10,2), accountId INT)
-BEGIN
-IF(balance-eventamount>0) THEN
-COMMIT;
-UPDATE account SET balance=balance-eventAmount WHERE id_account=accountId;
-INSERT INTO event (id_event, transaction_type, transaction_date, amount, id_account)
-VALUES (+id_event, 'withdraw', current_timestamp(), -eventAmount, accountId);
-ELSE 
-ROLLBACK;
-END //
-DELIMITER ;
+-- Dump completed on 2024-04-11 15:06:36
