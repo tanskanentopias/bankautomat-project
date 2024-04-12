@@ -1,9 +1,9 @@
 const express=require('express');
 const router=express.Router();
-const card=require('../models/card_model');
+const account=require('../models/account_model');
 
 router.get('/',function(request, response){
-    card.getCardInfo(function(err, result){
+    account.getAccountInfo(function(err, result){
         if(err){
             response.send(err);
         }
@@ -15,7 +15,7 @@ router.get('/',function(request, response){
 });
 
 router.get('/',function(request,response){
-    card.getOneCard(request.params.usern, function(err,result){
+    account.getOneAccount(request.params.usern, function(err,result){
         if(err){
             response.send(err);
         }
@@ -27,7 +27,7 @@ router.get('/',function(request,response){
 });
 
 router.post('/',function(request, response){
-    card.addCard(request.body, function(err, result){
+    account.addAccount(request.body, function(err, result){
         if(err){
             response.send(err);
         }

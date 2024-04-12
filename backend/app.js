@@ -6,6 +6,7 @@ const jwt=require('jsonwebtoken');
 
 var indexRouter = require('./routes/index');
 var cardRouter = require('./routes/card');
+var accountRouter = require('./routes/account');
 var loginRouter = require('./routes/login');
 
 
@@ -25,6 +26,7 @@ app.use('/login', loginRouter);
 //app.use(authenticateToken);
 //suojatut reitit
 app.use('/card', cardRouter);
+app.use('/account', accountRouter);
 
 
 
