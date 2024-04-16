@@ -6,10 +6,6 @@
 #include <QtNetwork>
 #include <QNetworkAccessManager>
 #include <QJsonDocument>
-<<<<<<< HEAD
-=======
-#include <QMessageBox>
->>>>>>> f560fa7a947eba0f6f6794523eec9150c271e14e
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,19 +21,12 @@ public:
 
 private:
     Ui::MainWindow *ui;
-<<<<<<< HEAD
     QNetworkReply *reply;
     QNetworkAccessManager *loginManager;
     QByteArray responseData;
     QByteArray webToken;
-=======
-    QNetworkAccessManager *loginManager;
-    QNetworkReply *reply;
-    QByteArray responseData;
->>>>>>> f560fa7a947eba0f6f6794523eec9150c271e14e
     QString password;
     QString cardNumber;
-    QByteArray webToken;
     QString currentNumPadKey;
     QString currentSideButton;
     QString correctPassword = "1234";
