@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->numPadEnter, &QPushButton::clicked, this, &MainWindow::numPadClickHandler);
 
     connect(ui->rightButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
+    connect(ui->rightButton4, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->rightButton5, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton2, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
@@ -44,13 +45,10 @@ void MainWindow::showLoginMenu()
 {
     hideElements();
     clearLabels();
-    state = 1;
-    ui->titleLabel->setText("Insert card");
+    state = 2;
+    ui->titleLabel->setText("Insert PIN");
     ui->rightLabel1->setText("RESET");
-    ui->lineEdit2->show();
     ui->lineEdit3->show();
-    ui->centerLabel2->show();
-    ui->centerLabel2->setText("Card Number");
     ui->centerLabel3->show();
     ui->centerLabel3->setText("PIN");
     window = 1;
@@ -60,7 +58,7 @@ void MainWindow::showMenu()
 {
     hideElements();
     clearLabels();
-    ui->titleLabel->setText("Welcome User");
+    ui->titleLabel->setText("Choose option");
     ui->leftLabel3->setText("WITHDRAW");
     ui->leftLabel2->setText("SHOW BALANCE");
     ui->leftLabel1->setText("SHOW EVENTS");
@@ -130,8 +128,12 @@ void MainWindow::sideButtonClickHandler()
 
     // Alkunäkymä
     if (window == 0) {
-        if (currentSideButton == "leftButton1") {
+        if (currentSideButton == "leftButton1" && !cardNumber.isEmpty()) {
             showLoginMenu();
+            qDebug() << cardNumber;
+        }
+        if (currentSideButton == "rightButton4") {      //testausta
+            cardNumber = "060006DAEB";
         }
     }
 
@@ -199,6 +201,44 @@ void MainWindow::sideButtonClickHandler()
     }
 }
 
+void MainWindow::login()
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("card_serial", cardNumber);
+    jsonObj.insert("card_pin", password);
+
+    QString site_url="http://localhost:3000/login";
+    QNetworkRequest request((site_url));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    loginManager = new QNetworkAccessManager(this);
+    connect(loginManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginSlot(QNetworkReply*)));
+
+    reply = loginManager->post(request, QJsonDocument(jsonObj).toJson());
+    qDebug() << jsonObj << reply;
+}
+
+void MainWindow::loginSlot(QNetworkReply *reply)
+{
+    responseData = reply->readAll();
+    qDebug() << responseData;
+
+    if (responseData == "-4078" || responseData.length() == 0) {
+        ui->infoLabel->setText("Database connection error");
+        ui->lineEdit3->clear();
+        password.clear();
+    } else if (responseData != "false") {
+        showMenu();
+    } else {
+        ui->infoLabel->setText("Invalid card number or password");
+        ui->lineEdit3->clear();
+        password.clear();
+    }
+
+    reply->deleteLater();
+    loginManager->deleteLater();
+}
+
 void MainWindow::fillLineEdit()
 {
     if (window == 1) {
@@ -219,7 +259,10 @@ void MainWindow::fillLineEdit()
                     ui->lineEdit3->clear();
                     password.clear();
                 } else if (currentNumPadKey == "OK") {
-                    checkPassword();
+                    //checkPassword();
+                    login();
+                    ui->infoLabel->clear();
+                    qDebug() << cardNumber << password;
                 } else {
                     password = password + currentNumPadKey;
                     ui->lineEdit3->setText(password);
@@ -252,8 +295,7 @@ void MainWindow::reset()
     currentNumPadKey.clear();
     currentSideButton.clear();
     clearLabels();
-    ui->leftLabel1->setText("INSERT CARD");
-    ui->titleLabel->setText("Pankkiautomaatti");
+    ui->titleLabel->setText("Insert Card");
 }
 
 void MainWindow::hideElements()
@@ -268,7 +310,7 @@ void MainWindow::hideElements()
     ui->centerLabel2->hide();
     ui->centerLabel3->hide();
     ui->tableView->hide();
-    cardNumber.clear();
+    //cardNumber.clear();
     password.clear();
     withdrawAmount.clear();
 }
@@ -289,6 +331,7 @@ void MainWindow::clearLabels()
     ui->centerLabel1->clear();
     ui->centerLabel2->clear();
     ui->centerLabel3->clear();
+    ui->infoLabel->clear();
 }
 
 void MainWindow::checkCardNumber()

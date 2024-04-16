@@ -420,7 +420,7 @@
       <string notr="true">color: rgb(0, 0, 0);</string>
      </property>
      <property name="text">
-      <string>Pankkiautomaatti</string>
+      <string>Insert Card</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -607,7 +607,7 @@
          </font>
         </property>
         <property name="text">
-         <string>INSERT CARD</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -656,6 +656,9 @@
      </property>
     </widget>
     <widget class="QTableView" name="tableView">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>240</x>
@@ -663,6 +666,31 @@
        <width>400</width>
        <height>250</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="infoLabel">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>260</y>
+       <width>181</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
