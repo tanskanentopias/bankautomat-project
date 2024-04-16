@@ -211,17 +211,27 @@ void MainWindow::login()
     QNetworkRequest request((site_url));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
+<<<<<<< HEAD
     loginManager = new QNetworkAccessManager(this);
     connect(loginManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginSlot(QNetworkReply*)));
 
     reply = loginManager->post(request, QJsonDocument(jsonObj).toJson());
     qDebug() << jsonObj << reply;
+=======
+    QByteArray myToken="Bearer "+webToken;
+    request.setRawHeader(QByteArray("Authorization"),(myToken));
+
+    loginManager = new QNetworkAccessManager(this);
+    connect(loginManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(loginSlot(QNetworkReply*)));
+    reply = loginManager->get(request);
+>>>>>>> f560fa7a947eba0f6f6794523eec9150c271e14e
 }
 
 void MainWindow::loginSlot(QNetworkReply *reply)
 {
     responseData = reply->readAll();
     qDebug() << responseData;
+<<<<<<< HEAD
 
     if (responseData == "-4078" || responseData.length() == 0) {
         ui->infoLabel->setText("Database connection error");
@@ -237,6 +247,22 @@ void MainWindow::loginSlot(QNetworkReply *reply)
 
     reply->deleteLater();
     loginManager->deleteLater();
+=======
+    QMessageBox msgBox;
+    if (responseData == "-4078") {
+
+        msgBox.setText("Error with connecting to database");
+            msgBox.exec();
+    } else {
+        if (responseData != "false") {
+            msgBox.setText("OK");
+            msgBox.exec();
+        } else {
+            msgBox.setText("Card number / password do not match");
+            msgBox.exec();
+        }
+    }
+>>>>>>> f560fa7a947eba0f6f6794523eec9150c271e14e
 }
 
 void MainWindow::fillLineEdit()
@@ -248,7 +274,8 @@ void MainWindow::fillLineEdit()
                     ui->lineEdit2->clear();
                     cardNumber.clear();
                 } else if (currentNumPadKey == "OK") {
-                    checkCardNumber();
+                    //checkCardNumber();
+                    state = 2;
                 } else {
                     cardNumber = cardNumber + currentNumPadKey;
                     ui->lineEdit2->setText(cardNumber);
@@ -261,8 +288,12 @@ void MainWindow::fillLineEdit()
                 } else if (currentNumPadKey == "OK") {
                     //checkPassword();
                     login();
+<<<<<<< HEAD
                     ui->infoLabel->clear();
                     qDebug() << cardNumber << password;
+=======
+                    showMenu();
+>>>>>>> f560fa7a947eba0f6f6794523eec9150c271e14e
                 } else {
                     password = password + currentNumPadKey;
                     ui->lineEdit3->setText(password);
