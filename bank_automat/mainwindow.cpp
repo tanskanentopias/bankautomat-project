@@ -199,6 +199,44 @@ void MainWindow::sideButtonClickHandler()
     }
 }
 
+void MainWindow::login()
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("card_serial", cardNumber);
+    jsonObj.insert("card_pin", password);
+
+    QString site_url="http://localhost:3000/login";
+    QNetworkRequest request((site_url));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QByteArray myToken="Bearer "+webToken;
+    request.setRawHeader(QByteArray("Authorization"),(myToken));
+
+    loginManager = new QNetworkAccessManager(this);
+    connect(loginManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(loginSlot(QNetworkReply*)));
+    reply = loginManager->get(request);
+}
+
+void MainWindow::loginSlot(QNetworkReply *reply)
+{
+    responseData = reply->readAll();
+    qDebug() << responseData;
+    QMessageBox msgBox;
+    if (responseData == "-4078") {
+
+        msgBox.setText("Error with connecting to database");
+            msgBox.exec();
+    } else {
+        if (responseData != "false") {
+            msgBox.setText("OK");
+            msgBox.exec();
+        } else {
+            msgBox.setText("Card number / password do not match");
+            msgBox.exec();
+        }
+    }
+}
+
 void MainWindow::fillLineEdit()
 {
     if (window == 1) {
@@ -208,7 +246,8 @@ void MainWindow::fillLineEdit()
                     ui->lineEdit2->clear();
                     cardNumber.clear();
                 } else if (currentNumPadKey == "OK") {
-                    checkCardNumber();
+                    //checkCardNumber();
+                    state = 2;
                 } else {
                     cardNumber = cardNumber + currentNumPadKey;
                     ui->lineEdit2->setText(cardNumber);
@@ -219,7 +258,9 @@ void MainWindow::fillLineEdit()
                     ui->lineEdit3->clear();
                     password.clear();
                 } else if (currentNumPadKey == "OK") {
-                    checkPassword();
+                    //checkPassword();
+                    login();
+                    showMenu();
                 } else {
                     password = password + currentNumPadKey;
                     ui->lineEdit3->setText(password);

@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QtNetwork>
+#include <QNetworkAccessManager>
+#include <QJsonDocument>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,8 +22,12 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QNetworkAccessManager *loginManager;
+    QNetworkReply *reply;
+    QByteArray responseData;
     QString password;
     QString cardNumber;
+    QByteArray webToken;
     QString currentNumPadKey;
     QString currentSideButton;
     QString correctPassword = "1234";
@@ -45,6 +53,8 @@ private:
 private slots:
     void numPadClickHandler();
     void sideButtonClickHandler();
+    void login();
+    void loginSlot(QNetworkReply *reply);
 
 };
 #endif // MAINWINDOW_H
