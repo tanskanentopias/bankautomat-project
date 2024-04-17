@@ -8,7 +8,7 @@ dotenv.config();
 
 router.post('/',function(request, response){
     if(request.body.username && request.body.password){
-        student.login(request.body.username, function(err,result){
+        card.login(request.body.username, function(err,result){
             if(err){
                 console.log(err.errno);
                 response.json(err.errno);

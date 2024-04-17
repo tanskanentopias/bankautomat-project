@@ -26,12 +26,15 @@ DROP TABLE IF EXISTS `account`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account` (
   `id_account` int NOT NULL AUTO_INCREMENT,
-  `balance` decimal(10,2) DEFAULT NULL,
+  `debit_balance` decimal(10,2) DEFAULT NULL,
+  `credit_balance` decimal(10,2) DEFAULT NULL,
   `credit_limit` decimal(10,2) DEFAULT NULL,
   `id_user` int NOT NULL,
   PRIMARY KEY (`id_account`),
   KEY `fk_account_user1_idx` (`id_user`),
-  CONSTRAINT `account_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `account_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `CHK_credit_limit` CHECK ((`credit_balance` >= `credit_limit`)),
+  CONSTRAINT `CHK_debit_balance` CHECK ((`debit_balance` >= 0))
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -41,7 +44,7 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,5000.00,-5000.00,101),(2,5000.00,-5000.00,101),(3,5000.00,-5000.00,102),(4,5000.00,-5000.00,102);
+INSERT INTO `account` VALUES (1,5000.00,0.00,-5000.00,101),(2,5000.00,-5000.00,-5000.00,101);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,10 +59,7 @@ CREATE TABLE `card` (
   `card_serial` varchar(20) NOT NULL,
   `card_type` varchar(20) DEFAULT NULL,
   `card_pin` varchar(255) DEFAULT NULL,
-  `id_account` int DEFAULT NULL,
-  PRIMARY KEY (`card_serial`),
-  KEY `fk_card_account1_idx` (`id_account`),
-  CONSTRAINT `card_account` FOREIGN KEY (`id_account`) REFERENCES `account` (`id_account`) ON DELETE RESTRICT ON UPDATE CASCADE
+  PRIMARY KEY (`card_serial`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -69,8 +69,36 @@ CREATE TABLE `card` (
 
 LOCK TABLES `card` WRITE;
 /*!40000 ALTER TABLE `card` DISABLE KEYS */;
-INSERT INTO `card` VALUES ('060006420E','debit','$2a$10$sjyPYzeiNWLEC.xOCPEnAO4kYFl.mitNWg1IpbFQGjy1wbtTPgnwW',1),('060006DAEB','credit','$2a$10$HWzQdPyFPMHwltsn/zUGZe3LC/zu.14ZwJouXlffTDq/RK.m0qIzm',2);
+INSERT INTO `card` VALUES ('060006420E','debit','$2a$10$MMYlbdksZR4vKuJHbyRnd.Utnvr.Ti.CjEIENMWZ2xctgBaaJMXzq'),('060006DAEB','credit','$2a$10$HWzQdPyFPMHwltsn/zUGZe3LC/zu.14ZwJouXlffTDq/RK.m0qIzm');
 /*!40000 ALTER TABLE `card` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `card_has_account`
+--
+
+DROP TABLE IF EXISTS `card_has_account`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `card_has_account` (
+  `card` varchar(20) NOT NULL,
+  `account` int NOT NULL,
+  PRIMARY KEY (`card`,`account`),
+  KEY `fk_card_has_account_account1_idx` (`account`),
+  KEY `fk_card_has_account_card1_idx` (`card`),
+  CONSTRAINT `fk_card_has_account_account1` FOREIGN KEY (`account`) REFERENCES `account` (`id_account`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_card_has_account_card1` FOREIGN KEY (`card`) REFERENCES `card` (`card_serial`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `card_has_account`
+--
+
+LOCK TABLES `card_has_account` WRITE;
+/*!40000 ALTER TABLE `card_has_account` DISABLE KEYS */;
+INSERT INTO `card_has_account` VALUES ('060006420E',1),('060006DAEB',2);
+/*!40000 ALTER TABLE `card_has_account` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -123,13 +151,55 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (101,'Teppo','Testi'),(102,'Aino','Ainoa');
+INSERT INTO `user` VALUES (101,'Teppo','Testi');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
 -- Dumping routines for database 'bankautomatdb'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `credit_withdraw` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `credit_withdraw`(IN eventAmount DECIMAL(10,2), accountId INT)
+BEGIN
+UPDATE account SET credit_balance=credit_balance-eventAmount WHERE id_account=accountId;
+INSERT INTO event (id_event, transaction_type, transaction_date, amount, id_account)
+VALUES (+id_event, 'credit_withdraw', current_timestamp(), -eventAmount, accountId);
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `debit_withdraw` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `debit_withdraw`(IN eventAmount DECIMAL(10,2), accountId INT)
+BEGIN
+UPDATE account SET debit_balance=debit_balance-eventAmount WHERE id_account=accountId;
+INSERT INTO event (id_event, transaction_type, transaction_date, amount, id_account)
+VALUES (+id_event, 'debit_withdraw', current_timestamp(), -eventAmount, accountId);
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `deposit` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -172,27 +242,6 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 DROP PROCEDURE IF EXISTS `withdraw` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `withdraw`(IN eventAmount DECIMAL(10,2), accountId INT)
-BEGIN
-UPDATE account SET balance=balance-eventAmount WHERE id_account=accountId;
-INSERT INTO event (id_event, transaction_type, transaction_date, amount, id_account)
-VALUES (+id_event, 'withdraw', current_timestamp(), -eventAmount, accountId);
-END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -203,4 +252,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-04-11 15:06:36
+-- Dump completed on 2024-04-17 12:25:28
