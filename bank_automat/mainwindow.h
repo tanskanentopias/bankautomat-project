@@ -6,6 +6,7 @@
 #include <QtNetwork>
 #include <QNetworkAccessManager>
 #include <QJsonDocument>
+#include "bank_automat_dll.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,14 +24,14 @@ private:
     Ui::MainWindow *ui;
     QNetworkReply *reply;
     QNetworkAccessManager *loginManager;
+    Bank_automat_dll *dllPtr;
+
     QByteArray responseData;
     QByteArray webToken;
     QString password;
     QString cardNumber;
     QString currentNumPadKey;
     QString currentSideButton;
-    QString correctPassword = "1234";
-    QString correctCardNumber = "4321";
     QString withdrawAmount;
     short pinAttemptsLeft;
     short state;
@@ -50,6 +51,7 @@ private:
     void checkPassword();
 
 private slots:
+    void handleDLLSignal(QString);
     void numPadClickHandler();
     void sideButtonClickHandler();
     void login();

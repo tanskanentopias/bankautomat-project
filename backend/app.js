@@ -21,13 +21,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //suojaamattomat reitit
 app.use('/', indexRouter);
-//app.use('/login', loginRouter);
+app.use('/login', loginRouter);
 
 //app.use(authenticateToken);
 //suojatut reitit
 app.use('/card', cardRouter);
 app.use('/account', accountRouter);
-app.use('/login', loginRouter);
 
 
 
