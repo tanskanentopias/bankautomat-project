@@ -24,6 +24,7 @@ private:
     Ui::MainWindow *ui;
     QNetworkReply *reply;
     QNetworkAccessManager *loginManager;
+    QNetworkAccessManager *withdrawManager;
     Bank_automat_dll *dllPtr;
 
     QByteArray responseData;
@@ -34,9 +35,9 @@ private:
     QString currentSideButton;
     QString withdrawAmount;
     short pinAttemptsLeft;
-    short state;
     int window;
     bool wasOtherChosen;
+    int accountID;
 
     void showLoginMenu();
     void showMenu();
@@ -47,7 +48,6 @@ private:
     void reset();
     void hideElements();
     void clearLabels();
-    void checkCardNumber();
     void checkPassword();
 
 private slots:
@@ -56,6 +56,8 @@ private slots:
     void sideButtonClickHandler();
     void login();
     void loginSlot(QNetworkReply *reply);
+    void withdraw();
+    void withdrawSlot(QNetworkReply *reply);
 
 };
 #endif // MAINWINDOW_H

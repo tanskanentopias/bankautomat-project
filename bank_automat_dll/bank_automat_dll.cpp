@@ -8,7 +8,7 @@ Bank_automat_dll::Bank_automat_dll(QWidget *parent)
 
 {
     serialPort = new QSerialPort(this);
-    serialPort->setPortName("COM4");
+    serialPort->setPortName("COM6");
     serialPort->setBaudRate(QSerialPort::Baud9600);
     serialPort->setDataBits(QSerialPort::Data8);
     serialPort->setParity(QSerialPort::NoParity);
