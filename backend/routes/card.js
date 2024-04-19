@@ -14,8 +14,8 @@ router.get('/',function(request, response){
     });
 });
 
-router.get('/',function(request,response){
-    card.getOneCard(request.params.usern, function(err,result){
+router.get('/:cs',function(request,response){
+    card.getOneCard(request.params.cs, function(err,result){
         if(err){
             response.send(err);
         }

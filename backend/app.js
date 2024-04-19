@@ -8,7 +8,10 @@ var indexRouter = require('./routes/index');
 var cardRouter = require('./routes/card');
 var accountRouter = require('./routes/account');
 var loginRouter = require('./routes/login');
-var withdrawRouter = require('./routes/withdraw');
+var debitWithdrawRouter = require('./routes/debit_withdraw');
+var creditWithdrawRouter = require('./routes/credit_withdraw');
+var eventRouter = require('./routes/event');
+
 
 
 
@@ -29,7 +32,11 @@ app.use('/', indexRouter);
 app.use('/card', cardRouter);
 app.use('/account', accountRouter);
 app.use('/login', loginRouter);
-app.use('/withdraw', withdrawRouter);
+app.use('/debit_withdraw', debitWithdrawRouter);
+app.use('/credit_withdraw', creditWithdrawRouter);
+app.use('/event', eventRouter);
+
+
 
 
 
