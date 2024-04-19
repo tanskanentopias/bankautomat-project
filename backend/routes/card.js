@@ -32,14 +32,14 @@ router.post('/',function(request, response){
             response.send(err);
         }
         else{
-            response.json(result);
-            //response.json(result.affectedRows);
+            //response.json(result);
+            response.json(result.affectedRows);
         }
     });
 });
 
-router.put('/:usern', function(request, response){
-    card.updateCard(request.params.usern, request.body, function(err, result){
+router.put('/:card_serial', function(request, response){
+    card.updateCard(request.params.card_serial, request.body, function(err, result){
         if(err){
             response.send(err);
         }

@@ -7,18 +7,18 @@ const dotenv=require('dotenv');
 dotenv.config();
 
 router.post('/',function(request, response){
-    if(request.body.username && request.body.password){
-        card.login(request.body.username, function(err,result){
+    if(request.body.card_serial && request.body.card_pin){
+        card.login(request.body.card_serial, function(err,result){
             if(err){
                 console.log(err.errno);
                 response.json(err.errno);
             }
             else{
                 if(result.length >0){
-                    bcrypt.compare(request.body.password, result[0].password, function(err, compareResult){
+                    bcrypt.compare(request.body.card_pin, result[0].card_pin, function(err, compareResult){
                         if(compareResult){
                             console.log('Kirjautuminen ok');
-                            const token=genToken({username: request.body.username});
+                            const token=genToken({card_serial: request.body.card_serial});
                             response.send(token);
                         }
                         else {
