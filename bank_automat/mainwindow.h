@@ -7,7 +7,6 @@
 #include <QNetworkAccessManager>
 #include <QJsonDocument>
 #include <QStandardItemModel>
-#include <QList>
 #include "bank_automat_dll.h"
 
 QT_BEGIN_NAMESPACE
@@ -40,6 +39,7 @@ private:
     QString currentSideButton;
     QString withdrawAmount;
     QString accountID;
+    QStandardItemModel tableModel;
     short pinAttemptsLeft;
     int window;
     bool wasOtherChosen;

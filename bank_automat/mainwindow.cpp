@@ -4,7 +4,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , accountID("2")
+    , accountID("1")
     , pinAttemptsLeft(3)
     , window(0)
 {
@@ -37,6 +37,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     dllPtr = new Bank_automat_dll(this);
     connect(dllPtr, SIGNAL(sendCardToUi(QString)), this, SLOT(handleDLLSignal(QString)));
+
+    tableModel.setColumnCount(3);
+    tableModel.setHorizontalHeaderLabels(QStringList() << "Type" << "Date" << "Amount");
 }
 
 MainWindow::~MainWindow()
@@ -306,15 +309,39 @@ void MainWindow::getEvents()
     connect(eventManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(eventSlot(QNetworkReply*)));
 
     reply = eventManager->get(request);
-    qDebug() << site_url;
 }
 
 void MainWindow::eventSlot(QNetworkReply *reply)
 {
     responseData = reply->readAll();
-    qDebug() << responseData;
 
+    QJsonDocument json_doc = QJsonDocument::fromJson(responseData);
+    QJsonArray events = json_doc.array()[0].toArray();
 
+    tableModel.removeRows(0, tableModel.rowCount());
+
+    for (int i = 0; i < events.size(); ++i) {
+        QJsonObject event = events[i].toObject();
+        QString type = event["transaction_type"].toString();
+        QString date = event["transaction_date"].toString();
+        QString amount = event["amount"].toString();
+
+        if (type == "credit_withdraw" || type == "debit_withdraw") {
+            type = "Withdraw";
+        }
+
+        QDateTime rawDate = QDateTime::fromString(date, Qt::ISODate);
+        rawDate = rawDate.toLocalTime();
+        QString formattedDate = rawDate.toString("yyyy-MM-dd hh:mm:ss");
+
+        QList<QStandardItem *> rowItems;
+        rowItems << new QStandardItem(type) << new QStandardItem(formattedDate) << new QStandardItem(amount);
+        tableModel.appendRow(rowItems);
+    }
+
+    ui->tableEvents->setModel(&tableModel);
+    QHeaderView *header = ui->tableEvents->horizontalHeader();
+    header->resizeSection(1, 170);
 
     reply->deleteLater();
     eventManager->deleteLater();

@@ -8,6 +8,10 @@ var indexRouter = require('./routes/index');
 var cardRouter = require('./routes/card');
 var accountRouter = require('./routes/account');
 var loginRouter = require('./routes/login');
+var debitWithdrawRouter = require('./routes/debit_withdraw');
+var creditWithdrawRouter = require('./routes/credit_withdraw');
+var eventRouter = require('./routes/event');
+
 
 
 
@@ -23,10 +27,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
 
-//app.use(authenticateToken);
+app.use(authenticateToken);
 //suojatut reitit
 app.use('/card', cardRouter);
 app.use('/account', accountRouter);
+//app.use('/login', loginRouter);
+app.use('/debit_withdraw', debitWithdrawRouter);
+app.use('/credit_withdraw', creditWithdrawRouter);
+app.use('/event', eventRouter);
+
+
+
 
 
 
