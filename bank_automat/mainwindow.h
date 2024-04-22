@@ -6,6 +6,8 @@
 #include <QtNetwork>
 #include <QNetworkAccessManager>
 #include <QJsonDocument>
+#include <QStandardItemModel>
+#include <QList>
 #include "bank_automat_dll.h"
 
 QT_BEGIN_NAMESPACE
@@ -25,19 +27,22 @@ private:
     QNetworkReply *reply;
     QNetworkAccessManager *loginManager;
     QNetworkAccessManager *withdrawManager;
+    QNetworkAccessManager *eventManager;
     Bank_automat_dll *dllPtr;
 
     QByteArray responseData;
     QByteArray webToken;
+    QByteArray myToken;
+    QString site_url;
     QString password;
     QString cardNumber;
     QString currentNumPadKey;
     QString currentSideButton;
     QString withdrawAmount;
+    QString accountID;
     short pinAttemptsLeft;
     int window;
     bool wasOtherChosen;
-    int accountID;
 
     void showLoginMenu();
     void showMenu();
@@ -58,6 +63,8 @@ private slots:
     void loginSlot(QNetworkReply *reply);
     void withdraw();
     void withdrawSlot(QNetworkReply *reply);
+    void getEvents();
+    void eventSlot(QNetworkReply *reply);
 
 };
 #endif // MAINWINDOW_H

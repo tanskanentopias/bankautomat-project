@@ -4,9 +4,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , accountID("2")
     , pinAttemptsLeft(3)
     , window(0)
-    , accountID(1)
 {
     ui->setupUi(this);
 
@@ -74,7 +74,7 @@ void MainWindow::showWithdrawMenu()
     clearLabels();
     ui->titleLabel->setText("Select amount to withdraw");
     QTimer::singleShot(0, this, [this]() {
-        ui->lineEdit1->clear();
+        ui->lineEdit2->clear();
         withdrawAmount.clear();
     });
     ui->leftLabel5->setText("20 €");
@@ -83,9 +83,6 @@ void MainWindow::showWithdrawMenu()
     ui->leftLabel2->setText("100 €");
     ui->leftLabel1->setText("OTHER");
     ui->rightLabel1->setText("BACK");
-    ui->centerLabel1->show();
-    ui->centerLabel1->setText("Amount");
-    ui->lineEdit1->show();
     window = 3;
 }
 
@@ -112,7 +109,7 @@ void MainWindow::showEventMenu()
     clearLabels();
     ui->titleLabel->setText("Account Events");
     ui->rightLabel1->setText("BACK");
-    ui->tableView->show();
+    ui->tableEvents->show();
     window = 5;
 }
 
@@ -151,39 +148,52 @@ void MainWindow::sideButtonClickHandler()
         }
         if (currentSideButton == "leftButton1") {
             showEventMenu();
+            getEvents();
         }
     }
 
     // Withdraw-menu
     if (window == 3) {
         if (currentSideButton == "leftButton5") {
-            ui->lineEdit1->setText("20");
-            withdrawAmount = ui->lineEdit1->text();
+            ui->lineEdit2->setText("20");
+            withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
             withdraw();
+            ui->centerLabel2->hide();
+            ui->lineEdit2->hide();
         }
         if (currentSideButton == "leftButton4") {
-            ui->lineEdit1->setText("40");
-            withdrawAmount = ui->lineEdit1->text();
+            ui->lineEdit2->setText("40");
+            withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
             withdraw();
+            ui->centerLabel2->hide();
+            ui->lineEdit2->hide();
         }
         if (currentSideButton == "leftButton3") {
-            ui->lineEdit1->setText("50");
-            withdrawAmount = ui->lineEdit1->text();
+            ui->lineEdit2->setText("50");
+            withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
             withdraw();
+            ui->centerLabel2->hide();
+            ui->lineEdit2->hide();
         }
         if (currentSideButton == "leftButton2") {
-            ui->lineEdit1->setText("100");
-            withdrawAmount = ui->lineEdit1->text();
+            ui->lineEdit2->setText("100");
+            withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
             withdraw();
+            ui->centerLabel2->hide();
+            ui->lineEdit2->hide();
         }
         if (currentSideButton == "leftButton1") {
             wasOtherChosen = true;
-            ui->lineEdit1->clear();
+            ui->centerLabel2->show();
+            ui->centerLabel2->setText("Amount");
+            ui->lineEdit2->show();
+            ui->lineEdit2->clear();
             withdrawAmount.clear();
+            ui->infoLabel->clear();
         }
     }
 
@@ -204,7 +214,7 @@ void MainWindow::login()
     jsonObj.insert("card_serial", cardNumber);
     jsonObj.insert("card_pin", password);
 
-    QString site_url="http://localhost:3000/login";
+    site_url = "http://localhost:3000/login";
     QNetworkRequest request((site_url));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -243,11 +253,16 @@ void MainWindow::withdraw()
     withdrawObj.insert("accountId", accountID);
     withdrawObj.insert("eventAmount", withdrawAmount);
 
-    QString site_url = "http://localhost:3000/withdraw";
+    if (accountID == "1") {
+        site_url = "http://localhost:3000/debit_withdraw";
+    } else {
+        site_url = "http://localhost:3000/credit_withdraw";
+    }
+
     QNetworkRequest request((site_url));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QByteArray myToken = "Bearer " + webToken;
+    myToken = "Bearer " + webToken;
     request.setRawHeader(QByteArray("Authorization"), (myToken));
 
     withdrawManager = new QNetworkAccessManager(this);
@@ -261,8 +276,48 @@ void MainWindow::withdrawSlot(QNetworkReply *reply)
 {
     responseData = reply->readAll();
     qDebug() << responseData;
+
+    if (responseData == "-4078" || responseData.length() == 0) {
+        ui->infoLabel->setText("Database connection error");
+        ui->lineEdit1->clear();
+        withdrawAmount.clear();
+    } else if (responseData == "3819") {
+        ui->infoLabel->setText("Credit limit exceeded");
+        ui->lineEdit1->clear();
+        withdrawAmount.clear();
+    } else {
+        ui->infoLabel->setText("Withdrew " + withdrawAmount + " €");
+    }
+
     reply->deleteLater();
     withdrawManager->deleteLater();
+}
+
+void MainWindow::getEvents()
+{
+    site_url = "http://localhost:3000/event/" + accountID;
+
+    QNetworkRequest request((site_url));
+
+    myToken = "Bearer " + webToken;
+    request.setRawHeader(QByteArray("Authorization"), (myToken));
+
+    eventManager = new QNetworkAccessManager(this);
+    connect(eventManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(eventSlot(QNetworkReply*)));
+
+    reply = eventManager->get(request);
+    qDebug() << site_url;
+}
+
+void MainWindow::eventSlot(QNetworkReply *reply)
+{
+    responseData = reply->readAll();
+    qDebug() << responseData;
+
+
+
+    reply->deleteLater();
+    eventManager->deleteLater();
 }
 
 void MainWindow::fillLineEdit()
@@ -283,13 +338,13 @@ void MainWindow::fillLineEdit()
 
     if (window == 3 && wasOtherChosen == true) {
         if (currentNumPadKey == "CLR") {
-            ui->lineEdit1->clear();
+            ui->lineEdit2->clear();
             withdrawAmount.clear();
         } else if (currentNumPadKey == "OK") {
             withdraw();
         } else {
             withdrawAmount = withdrawAmount + currentNumPadKey;
-            ui->lineEdit1->setText(withdrawAmount);
+            ui->lineEdit2->setText(withdrawAmount);
         }
     }
 }
@@ -303,6 +358,7 @@ void MainWindow::reset()
     currentSideButton.clear();
     clearLabels();
     ui->titleLabel->setText("Insert Card");
+    webToken.clear();
 }
 
 void MainWindow::hideElements()
@@ -317,7 +373,7 @@ void MainWindow::hideElements()
         ui->centerLabel1->hide();
         ui->centerLabel2->hide();
         ui->centerLabel3->hide();
-        ui->tableView->hide();
+        ui->tableEvents->hide();
         password.clear();
         withdrawAmount.clear();
     } else {
@@ -330,7 +386,7 @@ void MainWindow::hideElements()
         ui->centerLabel1->hide();
         ui->centerLabel2->hide();
         ui->centerLabel3->hide();
-        ui->tableView->hide();
+        ui->tableEvents->hide();
         cardNumber.clear();
         password.clear();
         withdrawAmount.clear();

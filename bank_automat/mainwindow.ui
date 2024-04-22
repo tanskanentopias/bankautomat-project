@@ -655,7 +655,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QTableView" name="tableView">
+    <widget class="QTableView" name="tableEvents">
      <property name="enabled">
       <bool>true</bool>
      </property>
