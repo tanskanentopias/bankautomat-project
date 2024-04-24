@@ -44,8 +44,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     tableModel.setColumnCount(3);
     tableModel.setHorizontalHeaderLabels(QStringList() << "Type" << "Date" << "Amount");
-
-    //showMenu();
 }
 
 MainWindow::~MainWindow()

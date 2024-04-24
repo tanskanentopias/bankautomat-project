@@ -26,7 +26,14 @@ void Networking::login(QString &cardNumber, QString &password)
 void Networking::loginSlot(QNetworkReply *reply)
 {
     responseData = reply->readAll();
-    webToken = responseData;
+
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+    QJsonObject jsonObj = jsonDoc.object();
+
+    webToken = jsonObj["token"].toString().toUtf8();
+    accountID = jsonObj["id_account"].toInt();
+
+    qDebug() << webToken << accountID;
 
     if (responseData == "-4078" || responseData.length() == 0) {
         returnValue = 2;
@@ -130,5 +137,10 @@ short Networking::getReturnValue()
 QJsonArray Networking::getEventArray()
 {
     return events;
+}
+
+int Networking::getAccountID()
+{
+    return accountID;
 }
 

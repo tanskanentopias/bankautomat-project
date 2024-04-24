@@ -6,10 +6,12 @@
 #include <QtNetwork>
 #include <QNetworkAccessManager>
 #include <QJsonDocument>
+#include <QString>
 
 class Networking : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Networking(QObject *parent = nullptr);
 
@@ -18,6 +20,7 @@ public:
     void getEvents(QString &accountID);
     short getReturnValue();
     QJsonArray getEventArray();
+    int getAccountID();
 
 public slots:
     void loginSlot(QNetworkReply *reply);
@@ -41,6 +44,8 @@ private:
     QByteArray myToken;
     short returnValue;
     QJsonArray events;
+    QJsonArray loginArray;
+    int accountID;
 
     void authenticate(QNetworkRequest &request);
 };

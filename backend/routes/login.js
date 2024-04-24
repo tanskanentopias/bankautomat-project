@@ -19,7 +19,8 @@ router.post('/',function(request, response){
                         if(compareResult){
                             console.log('Kirjautuminen ok');
                             const token=genToken({card_serial: request.body.card_serial});
-                            response.send(token);
+                            const id_account = result[0].account;
+                            response.json({token, id_account});
                         }
                         else {
                             console.log("Väärä salasana");

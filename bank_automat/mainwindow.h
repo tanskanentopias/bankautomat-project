@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include <QJsonDocument>
 #include <QStandardItemModel>
 #include "bank_automat_dll.h"
 #include "networking.h"
