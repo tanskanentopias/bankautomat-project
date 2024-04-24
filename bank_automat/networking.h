@@ -45,8 +45,7 @@ private:
     short returnValue;
     QJsonArray events;
     QJsonArray loginArray;
-    int accountID;
-    QString accountIDString;
+    QString accountID;
 
     void authenticate(QNetworkRequest &request);
 };

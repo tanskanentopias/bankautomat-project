@@ -30,9 +30,9 @@ void Networking::loginSlot(QNetworkReply *reply)
     QJsonObject jsonObj = jsonDoc.object();
 
     webToken = jsonObj["token"].toString().toUtf8();
-    accountID = jsonObj["id_account"].toInt();
+    int accountIDint = jsonObj["id_account"].toInt();
 
-    accountIDString = QString::number(accountID);
+    accountID = QString::number(accountIDint);
 
     if (responseData == "-4078" || responseData.length() == 0) {
         returnValue = 2;
@@ -140,6 +140,6 @@ QJsonArray Networking::getEventArray()
 
 QString Networking::getAccountID()
 {
-    return accountIDString;
+    return accountID;
 }
 
