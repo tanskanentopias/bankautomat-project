@@ -8,7 +8,7 @@ const credit_withdraw=require('../models/credit_withdraw_model');
 router.post('/',function(request, response){
     credit_withdraw.credit_withdraw(request.body, function(err, result){
         if(err){
-            response.send(err);
+            response.json(err.errno);
         }
         else{
             //response.json(result);

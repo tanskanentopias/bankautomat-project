@@ -1,4 +1,6 @@
 QT       += core gui
+QT += serialport
+QT += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -22,3 +24,10 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+
+win32: LIBS += -L$$PWD/../bank_automat_dll/build/debug/ -lbank_automat_dll
+
+INCLUDEPATH += $$PWD/../bank_automat_dll
+DEPENDPATH += $$PWD/../bank_automat_dll

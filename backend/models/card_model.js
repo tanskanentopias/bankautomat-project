@@ -24,8 +24,11 @@ const card={
     deleteCard(cs, callback){
         return db.query("DELETE FROM card WHERE card_serial=?",[cs],callback);
     },
-    login(cs, callback){
+    /*login(cs, callback){
         return db.query("SELECT card_pin from card WHERE card_serial=?",[cs], callback);
+    }}*/
+    login(cs, callback){
+        return db.query("SELECT card_serial, card_pin, card_type, card_has_account.account FROM card INNER JOIN card_has_account ON card_has_account.card = card.card_serial WHERE card_serial=?",[cs], callback);
     }}
 
 module.exports=card;

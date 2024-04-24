@@ -8,7 +8,7 @@ const debit_withdraw=require('../models/debit_withdraw_model');
 router.post('/',function(request, response){
     debit_withdraw.debit_withdraw(request.body, function(err, result){
         if(err){
-            response.send(err);
+            response.json(err.errno);
         }
         else{
             //response.json(result);
