@@ -4,7 +4,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , accountID("2")
     , pinAttemptsLeft(3)
     , window(0)
 {
@@ -176,6 +175,8 @@ void MainWindow::handleReturnValueOnLogin()
             password.clear();
             break;
     }
+
+    accountID = networking->getAccountID();
 }
 
 void MainWindow::handleReturnValueOnWithdraw()

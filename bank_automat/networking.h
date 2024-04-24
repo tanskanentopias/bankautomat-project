@@ -20,7 +20,7 @@ public:
     void getEvents(QString &accountID);
     short getReturnValue();
     QJsonArray getEventArray();
-    int getAccountID();
+    QString getAccountID();
 
 public slots:
     void loginSlot(QNetworkReply *reply);
@@ -46,6 +46,7 @@ private:
     QJsonArray events;
     QJsonArray loginArray;
     int accountID;
+    QString accountIDString;
 
     void authenticate(QNetworkRequest &request);
 };

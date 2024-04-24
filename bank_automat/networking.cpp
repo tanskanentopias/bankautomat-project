@@ -20,7 +20,6 @@ void Networking::login(QString &cardNumber, QString &password)
     connect(loginManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginSlot(QNetworkReply*)));
 
     reply = loginManager->post(request, QJsonDocument(jsonObj).toJson());
-    qDebug() << jsonObj;
 }
 
 void Networking::loginSlot(QNetworkReply *reply)
@@ -33,7 +32,7 @@ void Networking::loginSlot(QNetworkReply *reply)
     webToken = jsonObj["token"].toString().toUtf8();
     accountID = jsonObj["id_account"].toInt();
 
-    qDebug() << webToken << accountID;
+    accountIDString = QString::number(accountID);
 
     if (responseData == "-4078" || responseData.length() == 0) {
         returnValue = 2;
@@ -139,8 +138,8 @@ QJsonArray Networking::getEventArray()
     return events;
 }
 
-int Networking::getAccountID()
+QString Networking::getAccountID()
 {
-    return accountID;
+    return accountIDString;
 }
 
