@@ -139,7 +139,7 @@ void Networking::getBalance()
 
 void Networking::balanceSlot(QNetworkReply *reply)
 {
-    responseData = "5000";
+    responseData = reply->readAll();
 
     if (responseData == "Forbidden" || responseData == "Unauthorized") {
         returnValue = 3;
