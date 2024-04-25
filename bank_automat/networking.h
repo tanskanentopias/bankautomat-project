@@ -15,12 +15,16 @@ class Networking : public QObject
 public:
     explicit Networking(QObject *parent = nullptr);
 
+    QByteArray webToken;
+    QString cardType;
+    QString accountID;
+
     void login(QString &cardNumber, QString &password);
-    void withdraw(QString &accountID, QString &withdrawAmount);
-    void getEvents(QString &accountID);
+    void withdraw(QString &withdrawAmount);
+    void getEvents();
+    void getBalance();
     short getReturnValue();
     QJsonArray getEventArray();
-    QString getAccountID();
 
 public slots:
     void loginSlot(QNetworkReply *reply);
@@ -40,12 +44,10 @@ private:
 
     QString siteURL;
     QByteArray responseData;
-    QByteArray webToken;
     QByteArray myToken;
     short returnValue;
     QJsonArray events;
     QJsonArray loginArray;
-    QString accountID;
 
     void authenticate(QNetworkRequest &request);
 };

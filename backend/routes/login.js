@@ -20,7 +20,8 @@ router.post('/',function(request, response){
                             console.log('Kirjautuminen ok');
                             const token=genToken({card_serial: request.body.card_serial});
                             const id_account = result[0].account;
-                            response.json({token, id_account});
+                            const card_type = result[0].card_type;
+                            response.json({token, id_account, card_type});
                         }
                         else {
                             console.log("Väärä salasana");

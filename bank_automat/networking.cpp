@@ -31,6 +31,7 @@ void Networking::loginSlot(QNetworkReply *reply)
 
     webToken = jsonObj["token"].toString().toUtf8();
     int accountIDint = jsonObj["id_account"].toInt();
+    cardType = jsonObj["card_type"].toString();
 
     accountID = QString::number(accountIDint);
 
@@ -48,13 +49,13 @@ void Networking::loginSlot(QNetworkReply *reply)
     emit loginComplete();
 }
 
-void Networking::withdraw(QString &accountID, QString &withdrawAmount)
+void Networking::withdraw(QString &withdrawAmount)
 {
     QJsonObject withdrawObj;
     withdrawObj.insert("accountId", accountID);
     withdrawObj.insert("eventAmount", withdrawAmount);
 
-    if (accountID == "1") {
+    if (cardType == "debit") {
         siteURL = "http://localhost:3000/debit_withdraw";
     } else {
         siteURL = "http://localhost:3000/credit_withdraw";
@@ -91,7 +92,7 @@ void Networking::withdrawSlot(QNetworkReply *reply)
     emit withdrawComplete();
 }
 
-void Networking::getEvents(QString &accountID)
+void Networking::getEvents()
 {
     siteURL = "http://localhost:3000/event/" + accountID;
 
@@ -137,9 +138,3 @@ QJsonArray Networking::getEventArray()
 {
     return events;
 }
-
-QString Networking::getAccountID()
-{
-    return accountID;
-}
-

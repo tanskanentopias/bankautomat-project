@@ -94,7 +94,7 @@ void MainWindow::sideButtonClickHandler()
         }
         if (currentSideButton == "leftButton1") {
             showEventMenu();
-            networking->getEvents(accountID);
+            networking->getEvents();
         }
     }
 
@@ -104,37 +104,33 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->setText("20");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            networking->withdraw(accountID, withdrawAmount);
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
-            setTimer();
         }
         if (currentSideButton == "leftButton4") {
             ui->lineEdit2->setText("40");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            networking->withdraw(accountID, withdrawAmount);
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
-            setTimer();
         }
         if (currentSideButton == "leftButton3") {
             ui->lineEdit2->setText("50");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            networking->withdraw(accountID, withdrawAmount);
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
-            setTimer();
         }
         if (currentSideButton == "leftButton2") {
             ui->lineEdit2->setText("100");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            networking->withdraw(accountID, withdrawAmount);
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
-            setTimer();
         }
         if (currentSideButton == "leftButton1") {
             wasOtherChosen = true;
@@ -144,7 +140,6 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->clear();
             withdrawAmount.clear();
             ui->infoLabel->clear();
-            setTimer();
         }
     }
 
@@ -175,8 +170,6 @@ void MainWindow::handleReturnValueOnLogin()
             password.clear();
             break;
     }
-
-    accountID = networking->getAccountID();
 }
 
 void MainWindow::handleReturnValueOnWithdraw()
@@ -243,7 +236,7 @@ void MainWindow::timeout()
 {
     timer->start(1000);
     seconds--;
-    //qDebug() << seconds;
+    qDebug() << seconds;
 
     if (seconds == 0) {
         reset();
@@ -260,7 +253,6 @@ void MainWindow::showLoginMenu()
     ui->lineEdit3->show();
     ui->centerLabel3->show();
     ui->centerLabel3->setText("PIN");
-    setTimer();
 }
 
 void MainWindow::showMenu()
@@ -273,7 +265,6 @@ void MainWindow::showMenu()
     ui->leftLabel2->setText("SHOW BALANCE");
     ui->leftLabel1->setText("SHOW EVENTS");
     ui->rightLabel1->setText("LOG OUT");
-    setTimer();
 }
 
 void MainWindow::showWithdrawMenu()
@@ -292,7 +283,6 @@ void MainWindow::showWithdrawMenu()
     ui->leftLabel2->setText("100 €");
     ui->leftLabel1->setText("OTHER");
     ui->rightLabel1->setText("BACK");
-    setTimer();
 }
 
 void MainWindow::showBalanceMenu()
@@ -304,13 +294,8 @@ void MainWindow::showBalanceMenu()
     ui->rightLabel1->setText("BACK");
     ui->centerLabel1->show();
     ui->centerLabel1->setText("Balance");
-    ui->centerLabel2->show();
-    ui->centerLabel2->setText("Credit Limit");
     ui->lineEdit1->show();
     ui->lineEdit1->setText("66000 €");
-    ui->lineEdit2->show();
-    ui->lineEdit2->setText("5000 €");
-    setTimer();
 }
 
 void MainWindow::showEventMenu()
@@ -321,7 +306,6 @@ void MainWindow::showEventMenu()
     ui->titleLabel->setText("Account Events");
     ui->rightLabel1->setText("BACK");
     ui->tableEvents->show();
-    setTimer();
 }
 
 void MainWindow::fillLineEdit()
@@ -330,7 +314,6 @@ void MainWindow::fillLineEdit()
         if (currentNumPadKey == "CLR") {
             ui->lineEdit3->clear();
             password.clear();
-            setTimer();
         } else if (currentNumPadKey == "OK") {
             networking->login(cardNumber, password);
             ui->infoLabel->clear();
@@ -338,7 +321,6 @@ void MainWindow::fillLineEdit()
         } else {
             password = password + currentNumPadKey;
             ui->lineEdit3->setText(password);
-            setTimer();
         }
     }
 
@@ -346,14 +328,15 @@ void MainWindow::fillLineEdit()
         if (currentNumPadKey == "CLR") {
             ui->lineEdit2->clear();
             withdrawAmount.clear();
-            setTimer();
         } else if (currentNumPadKey == "OK") {
-            networking->withdraw(accountID, withdrawAmount);
-            setTimer();
+            if (withdrawAmount.toInt() % 5 != 0 || withdrawAmount == "0") {
+                ui->infoLabel->setText("Invalid amount");
+            } else {
+                networking->withdraw(withdrawAmount);
+            }
         } else {
             withdrawAmount = withdrawAmount + currentNumPadKey;
             ui->lineEdit2->setText(withdrawAmount);
-            setTimer();
         }
     }
 }
@@ -369,6 +352,9 @@ void MainWindow::reset()
     ui->titleLabel->setText("Insert Card");
     timer->stop();
     readCard();
+    networking->webToken.clear();
+    networking->cardType.clear();
+    networking->accountID.clear();
 }
 
 void MainWindow::hideElements()
