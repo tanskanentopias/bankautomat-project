@@ -3,11 +3,9 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include <QtNetwork>
-#include <QNetworkAccessManager>
-#include <QJsonDocument>
 #include <QStandardItemModel>
 #include "bank_automat_dll.h"
+#include "networking.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,25 +21,22 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QNetworkReply *reply;
-    QNetworkAccessManager *loginManager;
-    QNetworkAccessManager *withdrawManager;
-    QNetworkAccessManager *eventManager;
     Bank_automat_dll *dllPtr;
+    QTimer *timer;
+    Networking *networking;
 
-    QByteArray responseData;
-    QByteArray webToken;
-    QByteArray myToken;
-    QString site_url;
     QString password;
     QString cardNumber;
     QString currentNumPadKey;
     QString currentSideButton;
     QString withdrawAmount;
     QString accountID;
+    QString balance;
+    QJsonArray events;
     QStandardItemModel tableModel;
     short pinAttemptsLeft;
     int window;
+    int seconds;
     bool wasOtherChosen;
 
     void showLoginMenu();
@@ -53,18 +48,18 @@ private:
     void reset();
     void hideElements();
     void clearLabels();
-    void checkPassword();
+    void setTimer();
+    void readCard();
+    void handleReturnValueOnLogin();
+    void handleReturnValueOnWithdraw();
+    void handleEventReturn();
+    void handleBalanceReturn();
 
 private slots:
     void handleDLLSignal(QString);
     void numPadClickHandler();
     void sideButtonClickHandler();
-    void login();
-    void loginSlot(QNetworkReply *reply);
-    void withdraw();
-    void withdrawSlot(QNetworkReply *reply);
-    void getEvents();
-    void eventSlot(QNetworkReply *reply);
+    void timeout();
 
 };
 #endif // MAINWINDOW_H
