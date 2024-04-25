@@ -38,7 +38,31 @@ router.post('/',function(request, response){
     });
 });
 
+router.put('/:usern', function(request, response){
+    card.updateCard(request.params.usern, request.body, function(err, result){
+        if(err){
+            response.send(err);
+        }
+        else{
+            //response.json(result);
+            console.log(result.affectedRows);
+            response.json(result.affectedRows);
+        }
+    });
+});
 
+router.delete('/:usern',function(request, response){
+    card.deleteCard(request.params.usern, function(err, result){
+        if(err){
+            response.send(err);
+        }
+        else{
+            //response.json(result);
+            console.log(result.affectedRows);
+            response.json(result.affectedRows);
+        }
+    });
+});
 
 
 module.exports=router;
