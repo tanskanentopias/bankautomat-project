@@ -123,6 +123,36 @@ void Networking::eventSlot(QNetworkReply *reply)
     emit eventsComplete();
 }
 
+void Networking::getBalance()
+{
+    siteURL = "http://localhost:3000/balance/" + accountID;
+
+    QNetworkRequest request((siteURL));
+
+    authenticate(request);
+
+    balanceManager = new QNetworkAccessManager(this);
+    connect(balanceManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(balanceSlot(QNetworkReply*)));
+
+    reply = balanceManager->get(request);
+}
+
+void Networking::balanceSlot(QNetworkReply *reply)
+{
+    responseData = reply->readAll();
+
+    if (responseData == "Forbidden" || responseData == "Unauthorized") {
+        returnValue = 3;
+    } else {
+        balance = responseData;
+    }
+
+    reply->deleteLater();
+    balanceManager->deleteLater();
+
+    emit balanceComplete();
+}
+
 void Networking::authenticate(QNetworkRequest &request)
 {
     myToken = "Bearer " + webToken;
@@ -137,4 +167,9 @@ short Networking::getReturnValue()
 QJsonArray Networking::getEventArray()
 {
     return events;
+}
+
+QString Networking::returnBalance()
+{
+    return balance;
 }

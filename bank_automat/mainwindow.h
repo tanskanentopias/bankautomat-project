@@ -31,6 +31,7 @@ private:
     QString currentSideButton;
     QString withdrawAmount;
     QString accountID;
+    QString balance;
     QJsonArray events;
     QStandardItemModel tableModel;
     short pinAttemptsLeft;
@@ -52,6 +53,7 @@ private:
     void handleReturnValueOnLogin();
     void handleReturnValueOnWithdraw();
     void handleEventReturn();
+    void handleBalanceReturn();
 
 private slots:
     void handleDLLSignal(QString);

@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect (networking, &Networking::loginComplete, this, &MainWindow::handleReturnValueOnLogin);
     connect (networking, &Networking::withdrawComplete, this, &MainWindow::handleReturnValueOnWithdraw);
     connect (networking, &Networking::eventsComplete, this, &MainWindow::handleEventReturn);
+    connect (networking, &Networking::balanceComplete, this, &MainWindow::handleBalanceReturn);
 
     ui->lineEdit3->setEchoMode(QLineEdit::Password);
     hideElements();
@@ -91,6 +92,7 @@ void MainWindow::sideButtonClickHandler()
         }
         if (currentSideButton == "leftButton2") {
             showBalanceMenu();
+            networking->getBalance();
         }
         if (currentSideButton == "leftButton1") {
             showEventMenu();
@@ -232,6 +234,18 @@ void MainWindow::handleEventReturn()
     }
 }
 
+void MainWindow::handleBalanceReturn()
+{
+    if (networking->getReturnValue() == 3) {
+        ui->centerLabel1->hide();
+        ui->lineEdit1->hide();
+        ui->infoLabel->setText("Authentication failed");
+    } else {
+        balance = networking->returnBalance();
+        ui->lineEdit1->setText(balance + " €");
+    }
+}
+
 void MainWindow::timeout()
 {
     timer->start(1000);
@@ -295,7 +309,6 @@ void MainWindow::showBalanceMenu()
     ui->centerLabel1->show();
     ui->centerLabel1->setText("Balance");
     ui->lineEdit1->show();
-    ui->lineEdit1->setText("66000 €");
 }
 
 void MainWindow::showEventMenu()
