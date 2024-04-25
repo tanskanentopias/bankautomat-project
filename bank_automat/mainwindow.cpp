@@ -4,11 +4,14 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , accountID("1")
     , pinAttemptsLeft(3)
     , window(0)
 {
     ui->setupUi(this);
+    timer = new QTimer(this);
+    networking = new Networking(this);
+
+    connect(timer, &QTimer::timeout, this, &MainWindow::timeout);
 
     connect(ui->numPad0, &QPushButton::clicked, this, &MainWindow::numPadClickHandler);
     connect(ui->numPad1, &QPushButton::clicked, this, &MainWindow::numPadClickHandler);
@@ -24,19 +27,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->numPadEnter, &QPushButton::clicked, this, &MainWindow::numPadClickHandler);
 
     connect(ui->rightButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
-    connect(ui->rightButton4, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
-    connect(ui->rightButton5, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton1, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton2, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton3, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton4, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
     connect(ui->leftButton5, &QPushButton::clicked, this, &MainWindow::sideButtonClickHandler);
 
+    connect (networking, &Networking::loginComplete, this, &MainWindow::handleReturnValueOnLogin);
+    connect (networking, &Networking::withdrawComplete, this, &MainWindow::handleReturnValueOnWithdraw);
+    connect (networking, &Networking::eventsComplete, this, &MainWindow::handleEventReturn);
+    connect (networking, &Networking::balanceComplete, this, &MainWindow::handleBalanceReturn);
+
     ui->lineEdit3->setEchoMode(QLineEdit::Password);
     hideElements();
-
-    dllPtr = new Bank_automat_dll(this);
-    connect(dllPtr, SIGNAL(sendCardToUi(QString)), this, SLOT(handleDLLSignal(QString)));
+    readCard();
 
     tableModel.setColumnCount(3);
     tableModel.setHorizontalHeaderLabels(QStringList() << "Type" << "Date" << "Amount");
@@ -45,75 +49,16 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete timer;
+    delete networking;
 }
 
-void MainWindow::showLoginMenu()
+void MainWindow::handleDLLSignal(QString serial)
 {
-    hideElements();
-    clearLabels();
-    ui->titleLabel->setText("Insert PIN");
-    ui->rightLabel1->setText("RESET");
-    ui->lineEdit3->show();
-    ui->centerLabel3->show();
-    ui->centerLabel3->setText("PIN");
-    window = 1;
-}
-
-void MainWindow::showMenu()
-{
-    hideElements();
-    clearLabels();
-    ui->titleLabel->setText("Choose option");
-    ui->leftLabel3->setText("WITHDRAW");
-    ui->leftLabel2->setText("SHOW BALANCE");
-    ui->leftLabel1->setText("SHOW EVENTS");
-    ui->rightLabel1->setText("LOG OUT");
-    window = 2;
-}
-
-void MainWindow::showWithdrawMenu()
-{
-    hideElements();
-    clearLabels();
-    ui->titleLabel->setText("Select amount to withdraw");
-    QTimer::singleShot(0, this, [this]() {
-        ui->lineEdit2->clear();
-        withdrawAmount.clear();
-    });
-    ui->leftLabel5->setText("20 €");
-    ui->leftLabel4->setText("40 €");
-    ui->leftLabel3->setText("50 €");
-    ui->leftLabel2->setText("100 €");
-    ui->leftLabel1->setText("OTHER");
-    ui->rightLabel1->setText("BACK");
-    window = 3;
-}
-
-void MainWindow::showBalanceMenu()
-{
-    hideElements();
-    clearLabels();
-    ui->titleLabel->setText("Account Balance");
-    ui->rightLabel1->setText("BACK");
-    ui->centerLabel1->show();
-    ui->centerLabel1->setText("Balance");
-    ui->centerLabel2->show();
-    ui->centerLabel2->setText("Credit Limit");
-    ui->lineEdit1->show();
-    ui->lineEdit1->setText("66000 €");
-    ui->lineEdit2->show();
-    ui->lineEdit2->setText("5000 €");
-    window = 4;
-}
-
-void MainWindow::showEventMenu()
-{
-    hideElements();
-    clearLabels();
-    ui->titleLabel->setText("Account Events");
-    ui->rightLabel1->setText("BACK");
-    ui->tableEvents->show();
-    window = 5;
+    if (window == 0) {
+        cardNumber = serial;
+        showLoginMenu();
+    }
 }
 
 void MainWindow::numPadClickHandler()
@@ -139,7 +84,6 @@ void MainWindow::sideButtonClickHandler()
     if (window == 2) {
         if (currentSideButton == "rightButton1") {
             reset();
-            //jotain token-reset juttua tähän jos tarvii (log out)
         }
         if (currentSideButton == "leftButton3") {
             QTimer::singleShot(0, this, [this]() {
@@ -148,10 +92,11 @@ void MainWindow::sideButtonClickHandler()
         }
         if (currentSideButton == "leftButton2") {
             showBalanceMenu();
+            networking->getBalance();
         }
         if (currentSideButton == "leftButton1") {
             showEventMenu();
-            getEvents();
+            networking->getEvents();
         }
     }
 
@@ -161,7 +106,7 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->setText("20");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            withdraw();
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
         }
@@ -169,7 +114,7 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->setText("40");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            withdraw();
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
         }
@@ -177,7 +122,7 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->setText("50");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            withdraw();
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
         }
@@ -185,7 +130,7 @@ void MainWindow::sideButtonClickHandler()
             ui->lineEdit2->setText("100");
             withdrawAmount = ui->lineEdit2->text();
             wasOtherChosen = false;
-            withdraw();
+            networking->withdraw(withdrawAmount);
             ui->centerLabel2->hide();
             ui->lineEdit2->hide();
         }
@@ -204,147 +149,176 @@ void MainWindow::sideButtonClickHandler()
     if (currentSideButton == "rightButton1" && ui->rightLabel1->text() == "BACK") {
         showMenu();
     }
+}
 
-    // Testi
-    if (currentSideButton == "rightButton5") {
-        qDebug() << "window:" << window << "LEText:" << ui->lineEdit1->text() << "withdrawAmount:" << withdrawAmount;
+void MainWindow::handleReturnValueOnLogin()
+{
+    switch (networking->getReturnValue()) {
+        case 0:
+            showMenu();
+            break;
+        case 1:
+            ui->infoLabel->setText("Invalid card number or password");
+            ui->lineEdit3->clear();
+            password.clear();
+            pinAttemptsLeft--;
+            if (pinAttemptsLeft == 0) {
+                reset();
+            }
+            break;
+        case 2:
+            ui->infoLabel->setText("Database connection error");
+            ui->lineEdit3->clear();
+            password.clear();
+            break;
     }
 }
 
-void MainWindow::login()
+void MainWindow::handleReturnValueOnWithdraw()
 {
-    QJsonObject jsonObj;
-    jsonObj.insert("card_serial", cardNumber);
-    jsonObj.insert("card_pin", password);
-
-    site_url = "http://localhost:3000/login";
-    QNetworkRequest request((site_url));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    loginManager = new QNetworkAccessManager(this);
-    connect(loginManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginSlot(QNetworkReply*)));
-
-    reply = loginManager->post(request, QJsonDocument(jsonObj).toJson());
-    qDebug() << jsonObj;
+    switch (networking->getReturnValue()) {
+        case 0:
+            ui->infoLabel->setText("Withdrew " + withdrawAmount + " €");
+            break;
+        case 1:
+            if (accountID == "1") {
+                ui->infoLabel->setText("Insufficient funds");
+            } else {
+                ui->infoLabel->setText("Credit limit exceeded");
+            }
+            ui->lineEdit2->clear();
+            withdrawAmount.clear();
+            break;
+        case 2:
+            ui->infoLabel->setText("Database connection error");
+            ui->lineEdit2->clear();
+            withdrawAmount.clear();
+            break;
+        case 3:
+            ui->infoLabel->setText("Authentication failed");
+            break;
+    }
 }
 
-void MainWindow::loginSlot(QNetworkReply *reply)
+void MainWindow::handleEventReturn()
 {
-    responseData = reply->readAll();
-    qDebug() << responseData;
-    webToken = responseData;
-
-    if (responseData == "-4078" || responseData.length() == 0) {
-        ui->infoLabel->setText("Database connection error");
-        ui->lineEdit3->clear();
-        password.clear();
-    } else if (responseData != "false") {
-        showMenu();
+    if (networking->getReturnValue() == 3) {
+        ui->tableEvents->hide();
+        ui->infoLabel->setText("Authentication failed");
     } else {
-        ui->infoLabel->setText("Invalid card number or password");
-        ui->lineEdit3->clear();
-        password.clear();
-    }
+        events = networking->getEventArray();
 
-    reply->deleteLater();
-    loginManager->deleteLater();
-}
+        tableModel.removeRows(0, tableModel.rowCount());
 
-void MainWindow::withdraw()
-{
-    QJsonObject withdrawObj;
-    withdrawObj.insert("accountId", accountID);
-    withdrawObj.insert("eventAmount", withdrawAmount);
+        for (int i = 0; i < events.size(); ++i) {
+            QJsonObject event = events[i].toObject();
+            QString type = event["transaction_type"].toString();
+            QString date = event["transaction_date"].toString();
+            QString amount = event["amount"].toString();
 
-    if (accountID == "1") {
-        site_url = "http://localhost:3000/debit_withdraw";
-    } else {
-        site_url = "http://localhost:3000/credit_withdraw";
-    }
+            if (type == "credit_withdraw" || type == "debit_withdraw") {
+                type = "Withdraw";
+            }
 
-    QNetworkRequest request((site_url));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+            QDateTime rawDate = QDateTime::fromString(date, Qt::ISODate);
+            rawDate = rawDate.toLocalTime();
+            QString formattedDate = rawDate.toString("yyyy-MM-dd hh:mm:ss");
 
-    myToken = "Bearer " + webToken;
-    request.setRawHeader(QByteArray("Authorization"), (myToken));
-
-    withdrawManager = new QNetworkAccessManager(this);
-    connect(withdrawManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(withdrawSlot(QNetworkReply*)));
-
-    reply = withdrawManager->post(request, QJsonDocument(withdrawObj).toJson());
-    qDebug() << withdrawObj;
-}
-
-void MainWindow::withdrawSlot(QNetworkReply *reply)
-{
-    responseData = reply->readAll();
-    qDebug() << responseData;
-
-    if (responseData == "-4078" || responseData.length() == 0) {
-        ui->infoLabel->setText("Database connection error");
-        ui->lineEdit1->clear();
-        withdrawAmount.clear();
-    } else if (responseData == "3819") {
-        ui->infoLabel->setText("Credit limit exceeded");
-        ui->lineEdit1->clear();
-        withdrawAmount.clear();
-    } else {
-        ui->infoLabel->setText("Withdrew " + withdrawAmount + " €");
-    }
-
-    reply->deleteLater();
-    withdrawManager->deleteLater();
-}
-
-void MainWindow::getEvents()
-{
-    site_url = "http://localhost:3000/event/" + accountID;
-
-    QNetworkRequest request((site_url));
-
-    myToken = "Bearer " + webToken;
-    request.setRawHeader(QByteArray("Authorization"), (myToken));
-
-    eventManager = new QNetworkAccessManager(this);
-    connect(eventManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(eventSlot(QNetworkReply*)));
-
-    reply = eventManager->get(request);
-}
-
-void MainWindow::eventSlot(QNetworkReply *reply)
-{
-    responseData = reply->readAll();
-
-    QJsonDocument json_doc = QJsonDocument::fromJson(responseData);
-    QJsonArray events = json_doc.array()[0].toArray();
-
-    tableModel.removeRows(0, tableModel.rowCount());
-
-    for (int i = 0; i < events.size(); ++i) {
-        QJsonObject event = events[i].toObject();
-        QString type = event["transaction_type"].toString();
-        QString date = event["transaction_date"].toString();
-        QString amount = event["amount"].toString();
-
-        if (type == "credit_withdraw" || type == "debit_withdraw") {
-            type = "Withdraw";
+            QList<QStandardItem *> rowItems;
+            rowItems << new QStandardItem(type) << new QStandardItem(formattedDate) << new QStandardItem(amount);
+            tableModel.appendRow(rowItems);
         }
-
-        QDateTime rawDate = QDateTime::fromString(date, Qt::ISODate);
-        rawDate = rawDate.toLocalTime();
-        QString formattedDate = rawDate.toString("yyyy-MM-dd hh:mm:ss");
-
-        QList<QStandardItem *> rowItems;
-        rowItems << new QStandardItem(type) << new QStandardItem(formattedDate) << new QStandardItem(amount);
-        tableModel.appendRow(rowItems);
+        ui->tableEvents->setModel(&tableModel);
+        QHeaderView *header = ui->tableEvents->horizontalHeader();
+        header->resizeSection(1, 170);
     }
+}
 
-    ui->tableEvents->setModel(&tableModel);
-    QHeaderView *header = ui->tableEvents->horizontalHeader();
-    header->resizeSection(1, 170);
+void MainWindow::handleBalanceReturn()
+{
+    if (networking->getReturnValue() == 3) {
+        ui->centerLabel1->hide();
+        ui->lineEdit1->hide();
+        ui->infoLabel->setText("Authentication failed");
+    } else {
+        balance = networking->returnBalance();
+        ui->lineEdit1->setText(balance + " €");
+    }
+}
 
-    reply->deleteLater();
-    eventManager->deleteLater();
+void MainWindow::timeout()
+{
+    timer->start(1000);
+    seconds--;
+    qDebug() << seconds;
+
+    if (seconds == 0) {
+        reset();
+    }
+}
+
+void MainWindow::showLoginMenu()
+{
+    hideElements();
+    clearLabels();
+    window = 1;
+    ui->titleLabel->setText("Insert PIN");
+    ui->rightLabel1->setText("RESET");
+    ui->lineEdit3->show();
+    ui->centerLabel3->show();
+    ui->centerLabel3->setText("PIN");
+}
+
+void MainWindow::showMenu()
+{
+    hideElements();
+    clearLabels();
+    window = 2;
+    ui->titleLabel->setText("Choose option");
+    ui->leftLabel3->setText("WITHDRAW");
+    ui->leftLabel2->setText("SHOW BALANCE");
+    ui->leftLabel1->setText("SHOW EVENTS");
+    ui->rightLabel1->setText("LOG OUT");
+}
+
+void MainWindow::showWithdrawMenu()
+{
+    hideElements();
+    clearLabels();
+    window = 3;
+    ui->titleLabel->setText("Select amount to withdraw");
+    QTimer::singleShot(0, this, [this]() {
+        ui->lineEdit2->clear();
+        withdrawAmount.clear();
+    });
+    ui->leftLabel5->setText("20 €");
+    ui->leftLabel4->setText("40 €");
+    ui->leftLabel3->setText("50 €");
+    ui->leftLabel2->setText("100 €");
+    ui->leftLabel1->setText("OTHER");
+    ui->rightLabel1->setText("BACK");
+}
+
+void MainWindow::showBalanceMenu()
+{
+    hideElements();
+    clearLabels();
+    window = 4;
+    ui->titleLabel->setText("Account Balance");
+    ui->rightLabel1->setText("BACK");
+    ui->centerLabel1->show();
+    ui->centerLabel1->setText("Balance");
+    ui->lineEdit1->show();
+}
+
+void MainWindow::showEventMenu()
+{
+    hideElements();
+    clearLabels();
+    window = 5;
+    ui->titleLabel->setText("Account Events");
+    ui->rightLabel1->setText("BACK");
+    ui->tableEvents->show();
 }
 
 void MainWindow::fillLineEdit()
@@ -354,9 +328,9 @@ void MainWindow::fillLineEdit()
             ui->lineEdit3->clear();
             password.clear();
         } else if (currentNumPadKey == "OK") {
-            //checkPassword();
-            login();
+            networking->login(cardNumber, password);
             ui->infoLabel->clear();
+            setTimer();
         } else {
             password = password + currentNumPadKey;
             ui->lineEdit3->setText(password);
@@ -368,7 +342,11 @@ void MainWindow::fillLineEdit()
             ui->lineEdit2->clear();
             withdrawAmount.clear();
         } else if (currentNumPadKey == "OK") {
-            withdraw();
+            if (withdrawAmount.toInt() % 5 != 0 || withdrawAmount == "0") {
+                ui->infoLabel->setText("Invalid amount");
+            } else {
+                networking->withdraw(withdrawAmount);
+            }
         } else {
             withdrawAmount = withdrawAmount + currentNumPadKey;
             ui->lineEdit2->setText(withdrawAmount);
@@ -385,7 +363,11 @@ void MainWindow::reset()
     currentSideButton.clear();
     clearLabels();
     ui->titleLabel->setText("Insert Card");
-    webToken.clear();
+    timer->stop();
+    readCard();
+    networking->webToken.clear();
+    networking->cardType.clear();
+    networking->accountID.clear();
 }
 
 void MainWindow::hideElements()
@@ -418,7 +400,6 @@ void MainWindow::hideElements()
         password.clear();
         withdrawAmount.clear();
     }
-
 }
 
 void MainWindow::clearLabels()
@@ -440,26 +421,15 @@ void MainWindow::clearLabels()
     ui->infoLabel->clear();
 }
 
-//void MainWindow::checkPassword()
-//{
-//    if (password == correctPassword) {
-//        state = 0;
-//        hideElements();
-//        showMenu();
-//    } else {
-//        ui->lineEdit3->clear();
-//        password.clear();
-//        pinAttemptsLeft--;
-//        if (pinAttemptsLeft == 0) {
-//            MainWindow::close();    //Temporary
-//        }
-//        qDebug() << "Wrong PIN";
-//        qDebug() << "Attempts left:" << pinAttemptsLeft;
-//    }
-//}
-
-void MainWindow::handleDLLSignal(QString serial)
+void MainWindow::setTimer()
 {
-    cardNumber = serial;
-    showLoginMenu();
+    timer->stop();
+    seconds = 200;
+    timeout();
+}
+
+void MainWindow::readCard()
+{
+    dllPtr = new Bank_automat_dll(this);
+    connect(dllPtr, SIGNAL(sendCardToUi(QString)), this, SLOT(handleDLLSignal(QString)));
 }
