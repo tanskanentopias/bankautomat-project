@@ -31,7 +31,6 @@ app.use(authenticateToken);
 //suojatut reitit
 app.use('/card', cardRouter);
 app.use('/account', accountRouter);
-//app.use('/login', loginRouter);
 app.use('/debit_withdraw', debitWithdrawRouter);
 app.use('/credit_withdraw', creditWithdrawRouter);
 app.use('/event', eventRouter);
