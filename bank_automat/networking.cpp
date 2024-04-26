@@ -112,6 +112,8 @@ void Networking::eventSlot(QNetworkReply *reply)
 
     if (responseData == "Forbidden" || responseData == "Unauthorized") {
         returnValue = 3;
+    } else if (responseData == "-4078" || responseData.length() == 0) {
+        returnValue = 2;
     } else {
         QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
         events = jsonDoc.array()[0].toArray();
@@ -125,7 +127,11 @@ void Networking::eventSlot(QNetworkReply *reply)
 
 void Networking::getBalance()
 {
-    siteURL = "http://localhost:3000/balance/" + accountID;
+    if (cardType == "debit") {
+        siteURL = "http://localhost:3000/debit_balance/" + accountID;
+    } else {
+        siteURL = "http://localhost:3000/credit_balance/" + accountID;
+    }
 
     QNetworkRequest request((siteURL));
 
@@ -141,10 +147,19 @@ void Networking::balanceSlot(QNetworkReply *reply)
 {
     responseData = reply->readAll();
 
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+    QJsonObject jsonObj = jsonDoc.object();
+
+    if (cardType == "debit") {
+        balance = jsonObj["debit_balance"].toString();
+    } else {
+        balance = jsonObj["credit_balance"].toString();
+    }
+
     if (responseData == "Forbidden" || responseData == "Unauthorized") {
         returnValue = 3;
-    } else {
-        balance = responseData;
+    } else if (responseData == "-4078" || responseData.length() == 0) {
+        returnValue = 2;
     }
 
     reply->deleteLater();
