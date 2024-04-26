@@ -42,8 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     hideElements();
     readCard();
 
-    tableModel.setColumnCount(3);
-    tableModel.setHorizontalHeaderLabels(QStringList() << "Type" << "Date" << "Amount");
+
 }
 
 MainWindow::~MainWindow()
@@ -91,12 +90,12 @@ void MainWindow::sideButtonClickHandler()
             });
         }
         if (currentSideButton == "leftButton2") {
-            showBalanceMenu();
             networking->getBalance();
+            showBalanceMenu();
         }
         if (currentSideButton == "leftButton1") {
-            showEventMenu();
             networking->getEvents();
+            showEventMenu();
         }
     }
 
@@ -156,6 +155,7 @@ void MainWindow::handleReturnValueOnLogin()
     switch (networking->getReturnValue()) {
         case 0:
             showMenu();
+            setTimer();
             break;
         case 1:
             ui->infoLabel->setText("Invalid card number or password");
@@ -205,7 +205,13 @@ void MainWindow::handleEventReturn()
     if (networking->getReturnValue() == 3) {
         ui->tableEvents->hide();
         ui->infoLabel->setText("Authentication failed");
+    } else if (networking->getReturnValue() == 2) {
+        ui->tableEvents->hide();
+        ui->infoLabel->setText("Database connection error");
     } else {
+        tableModel.setColumnCount(3);
+        tableModel.setHorizontalHeaderLabels(QStringList() << "Type" << "Date" << "Amount");
+
         events = networking->getEventArray();
 
         tableModel.removeRows(0, tableModel.rowCount());
@@ -240,6 +246,10 @@ void MainWindow::handleBalanceReturn()
         ui->centerLabel1->hide();
         ui->lineEdit1->hide();
         ui->infoLabel->setText("Authentication failed");
+    } else if (networking->getReturnValue() == 2) {
+        ui->centerLabel1->hide();
+        ui->lineEdit1->hide();
+        ui->infoLabel->setText("Database connection error");
     } else {
         balance = networking->returnBalance();
         ui->lineEdit1->setText(balance + " €");
@@ -250,7 +260,6 @@ void MainWindow::timeout()
 {
     timer->start(1000);
     seconds--;
-    qDebug() << seconds;
 
     if (seconds == 0) {
         reset();
@@ -330,7 +339,6 @@ void MainWindow::fillLineEdit()
         } else if (currentNumPadKey == "OK") {
             networking->login(cardNumber, password);
             ui->infoLabel->clear();
-            setTimer();
         } else {
             password = password + currentNumPadKey;
             ui->lineEdit3->setText(password);

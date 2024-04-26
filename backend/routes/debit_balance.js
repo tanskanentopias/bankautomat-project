@@ -6,7 +6,7 @@ const debit_balance=require('../models/debit_balance_model');
 router.get('/:id',function(request,response){
     debit_balance.getAccountDebit(request.params.id, function(err,result){
         if(err){
-            response.send(err);
+            response.json(err.errno);
         }
         else{
             console.log(result);

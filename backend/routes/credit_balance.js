@@ -5,7 +5,7 @@ const credit_balance=require('../models/credit_balance_model');
 router.get('/:id',function(request,response){
     credit_balance.getAccountCredit(request.params.id, function(err,result){
         if(err){
-            response.send(err);
+            response.json(err.errno);
         }
         else{
             console.log(result);

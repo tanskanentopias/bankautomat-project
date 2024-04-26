@@ -7,7 +7,7 @@ const event=require('../models/event_model');
 router.get('/:id',function(request,response){
     event.getEvents(request.params.id, function(err,result){
         if(err){
-            response.send(err);
+            response.json(err.errno);
         }
         else{
             console.log(result);
