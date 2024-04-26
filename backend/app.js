@@ -11,6 +11,8 @@ var loginRouter = require('./routes/login');
 var debitWithdrawRouter = require('./routes/debit_withdraw');
 var creditWithdrawRouter = require('./routes/credit_withdraw');
 var eventRouter = require('./routes/event');
+var debitBalanceRouter = require('./routes/debit_balance');
+var creditBalanceRouter = require('./routes/credit_balance');
 
 
 
@@ -34,7 +36,8 @@ app.use('/account', accountRouter);
 app.use('/debit_withdraw', debitWithdrawRouter);
 app.use('/credit_withdraw', creditWithdrawRouter);
 app.use('/event', eventRouter);
-
+app.use('/credit_balance', creditBalanceRouter);
+app.use('/debit_balance', debitBalanceRouter);
 
 
 

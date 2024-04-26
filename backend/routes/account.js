@@ -15,6 +15,19 @@ router.get('/',function(request, response){
 });
 
 router.get('/',function(request,response){
+    account.getAccountBalance(request.params.id, function(err,result){
+        if(err){
+            response.send(err);
+        }
+        else{
+            console.log(result);
+            response.json(result[0]);
+        }
+    })
+});
+
+
+router.get('/',function(request,response){
     account.getOneAccount(request.params.usern, function(err,result){
         if(err){
             response.send(err);
