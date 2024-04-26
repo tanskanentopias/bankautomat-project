@@ -1,0 +1,12 @@
+#ifndef BANK_AUTOMAT_DLL_GLOBAL_H
+#define BANK_AUTOMAT_DLL_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(BANK_AUTOMAT_DLL_LIBRARY)
+#define BANK_AUTOMAT_DLL_EXPORT Q_DECL_EXPORT
+#else
+#define BANK_AUTOMAT_DLL_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // BANK_AUTOMAT_DLL_GLOBAL_H

@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QStandardItemModel>
+#include "bank_automat_dll.h"
+#include "networking.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,16 +21,22 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Bank_automat_dll *dllPtr;
+    QTimer *timer;
+    Networking *networking;
+
     QString password;
     QString cardNumber;
     QString currentNumPadKey;
     QString currentSideButton;
-    QString correctPassword = "1234";
-    QString correctCardNumber = "4321";
     QString withdrawAmount;
+    QString accountID;
+    QString balance;
+    QJsonArray events;
+    QStandardItemModel tableModel;
     short pinAttemptsLeft;
-    short state;
     int window;
+    int seconds;
     bool wasOtherChosen;
 
     void showLoginMenu();
@@ -39,12 +48,18 @@ private:
     void reset();
     void hideElements();
     void clearLabels();
-    void checkCardNumber();
-    void checkPassword();
+    void setTimer();
+    void readCard();
+    void handleReturnValueOnLogin();
+    void handleReturnValueOnWithdraw();
+    void handleEventReturn();
+    void handleBalanceReturn();
 
 private slots:
+    void handleDLLSignal(QString);
     void numPadClickHandler();
     void sideButtonClickHandler();
+    void timeout();
 
 };
 #endif // MAINWINDOW_H
