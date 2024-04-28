@@ -26,6 +26,7 @@ public:
     short getReturnValue();
     QJsonArray getEventArray();
     QString returnBalance();
+    QString returnCardType();
 
 public slots:
     void loginSlot(QNetworkReply *reply);
