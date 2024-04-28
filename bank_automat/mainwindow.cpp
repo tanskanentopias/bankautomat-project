@@ -181,7 +181,7 @@ void MainWindow::handleReturnValueOnWithdraw()
             ui->infoLabel->setText("Withdrew " + withdrawAmount + " €");
             break;
         case 1:
-            if (accountID == "1") {
+            if (networking->cardType == "debit") {
                 ui->infoLabel->setText("Insufficient funds");
             } else {
                 ui->infoLabel->setText("Credit limit exceeded");

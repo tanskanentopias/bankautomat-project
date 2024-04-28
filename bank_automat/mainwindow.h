@@ -30,7 +30,6 @@ private:
     QString currentNumPadKey;
     QString currentSideButton;
     QString withdrawAmount;
-    QString accountID;
     QString balance;
     QJsonArray events;
     QStandardItemModel tableModel;
